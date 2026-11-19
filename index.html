@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SINGLISH — караоке для англійської</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Abril+Fatface&family=Black+Ops+One&family=Bowlby+One&family=Permanent+Marker&family=Rubik+Mono+One&family=Special+Elite&family=Onest:wght@400;500;700&family=Unbounded:wght@500;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--deep:#14062e;--violet:#7b3cff;--violet2:#5a22d6;--lilac:#cdbcff;--acid:#e8ff4a;--fill:#eefc8c;--paper:#f3ecdc;--ink:#120a1f;
+  --fs:clamp(26px,6.6vw,52px);--px:0;--py:0;--beat:0;--ease:cubic-bezier(.2,.9,.25,1.15)}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100%}
+body{background:#2a1060 url(bg_violet.jpg) center top/cover fixed;color:var(--paper);font-family:Onest,system-ui,sans-serif;overflow-x:hidden;-webkit-tap-highlight-color:transparent}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+img{display:block;max-width:100%;user-select:none;-webkit-user-drag:none}
+.hidden{display:none!important}
+
+/* ---------- ambient layers ---------- */
+#fx{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+#fx .blob{position:absolute;mix-blend-mode:screen;animation:float 22s ease-in-out infinite alternate}
+#fx .blob{aspect-ratio:1;border-radius:50%;filter:blur(40px)}
+#fx .bv{width:min(110vw,900px);left:-30%;top:-8%;opacity:calc(.5 + var(--beat)*.35);background:radial-gradient(circle,#7b3cff 0%,rgba(123,60,255,.4) 40%,transparent 68%)}
+#fx .bb{width:min(80vw,700px);right:-30%;top:38%;animation-duration:28s;opacity:.45;background:radial-gradient(circle,#3b5bff 0%,transparent 65%)}
+#fx .bg{width:min(70vw,560px);left:-20%;bottom:-14%;animation-duration:31s;opacity:.28;background:radial-gradient(circle,#e8ff4a 0%,transparent 62%)}
+@keyframes float{to{transform:translate(8vw,5vh) rotate(8deg) scale(1.1)}}
+#grain{position:fixed;inset:-60px;z-index:40;pointer-events:none;background:url(grain.png);opacity:.33;mix-blend-mode:overlay;animation:grain .7s steps(3) infinite}
+@keyframes grain{0%{transform:translate(0,0)}33%{transform:translate(-22px,14px)}66%{transform:translate(17px,-19px)}100%{transform:translate(-9px,-6px)}}
+.vignette{position:fixed;inset:0;z-index:1;pointer-events:none;background:radial-gradient(120% 90% at 50% 40%,transparent 50%,rgba(10,2,26,.6) 100%)}
+.screen{position:relative;z-index:2}
+.shadow{filter:drop-shadow(4px 7px 5px rgba(0,0,0,.45))}
+
+/* ---------- draw zone (first screen) ---------- */
+#draw{position:relative;min-height:100svh;padding:20px 16px 40px;touch-action:pan-y;overflow:hidden;cursor:crosshair}
+#paint{position:absolute;inset:0;width:100%;height:100%;z-index:0}
+#draw .inner{position:relative;z-index:1;max-width:760px;margin:0 auto;pointer-events:none}
+.logo{position:relative;width:min(100%,640px);margin:6px auto 0;animation:slam .9s var(--ease) both .1s}
+.logo img.word{animation:wob 6s ease-in-out infinite 1s}
+@keyframes slam{0%{opacity:0;transform:scale(1.6) rotate(-6deg);filter:blur(6px)}60%{opacity:1;filter:blur(0)}100%{transform:none}}
+@keyframes wob{50%{transform:rotate(-1.2deg) translateY(-3px)}}
+.logo .star{position:absolute;right:-5%;top:-42%;width:17%;animation:spin 16s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.collage{position:relative;width:100%;aspect-ratio:1/.92;margin-top:8px}
+.layer{position:absolute;left:var(--x);top:var(--y);width:var(--w);
+  translate:calc(var(--px)*var(--z)*1px) calc(var(--py)*var(--z)*1px);transition:translate .5s cubic-bezier(.2,.8,.2,1);
+  animation:drop .9s var(--ease) both;animation-delay:var(--d)}
+.layer>img{transform:rotate(var(--r))}
+@keyframes drop{0%{opacity:0;transform:translateY(-60px) scale(1.3) rotate(-14deg)}100%{opacity:1;transform:none}}
+.layer.float>img{animation:bob 4.5s ease-in-out infinite;animation-delay:var(--d)}
+@keyframes bob{50%{transform:rotate(calc(var(--r) + 3deg)) translateY(-6px)}}
+
+.hint{position:relative;z-index:2;width:fit-content;margin:6px auto 0;padding:9px 18px 10px;background:url(strip_lilac.webp) center/100% 100%;color:var(--ink);
+  font:13px 'Special Elite',monospace;transform:rotate(-2deg);animation:pulse 2.4s ease-in-out infinite;pointer-events:none}
+@keyframes pulse{50%{transform:rotate(1deg) scale(1.05)}}
+.tag{position:relative;margin:22px auto 0;width:min(92%,520px);aspect-ratio:1100/170;background:url(strip_yellow.webp) center/100% 100% no-repeat;
+  display:flex;align-items:center;justify-content:center;transform:rotate(-2deg);filter:drop-shadow(4px 6px 3px rgba(0,0,0,.4));animation:drop .9s var(--ease) both 1.1s}
+.tag span{font:clamp(14px,3.9vw,20px) 'Special Elite',monospace;color:var(--ink)}
+.tag .tape{position:absolute;width:24%;left:-6%;top:-28%;transform:rotate(-24deg)}
+.scrolldown{position:absolute;z-index:2;left:50%;bottom:14px;translate:-50% 0;font:700 11px Unbounded;letter-spacing:.2em;color:var(--lilac);animation:nudge 1.6s ease-in-out infinite;pointer-events:none}
+@keyframes nudge{50%{transform:translateY(6px)}}
+
+/* ---------- marquee ---------- */
+.marquee{position:relative;z-index:3;margin:-20px -20px 0;height:64px;background:url(marquee.webp) center/100% 100%;transform:rotate(-2.5deg);overflow:hidden;
+  display:flex;align-items:center;filter:drop-shadow(0 6px 6px rgba(0,0,0,.4))}
+.marquee .track{display:flex;white-space:nowrap;animation:marq 22s linear infinite}
+.marquee span{font:18px 'Rubik Mono One',sans-serif;color:var(--ink);padding-right:28px}
+.marquee span i{font-style:normal;color:var(--violet2)}
+@keyframes marq{to{transform:translateX(-50%)}}
+.marquee.m2{background-image:url(strip_ink.webp);transform:rotate(1.6deg);margin-top:-30px;z-index:2;height:54px}
+.marquee.m2 span{color:var(--acid);font-size:15px}
+.marquee.m2 .track{animation-direction:reverse;animation-duration:30s}
+
+/* ---------- home sections ---------- */
+#home{padding-bottom:90px}
+.wrap{max-width:760px;margin:0 auto;padding:0 16px}
+.sec{margin-top:56px;position:relative}
+.sec-h{height:clamp(46px,11vw,72px);width:auto;margin-bottom:12px;margin-left:-6px;position:relative;z-index:4}
+.reveal{opacity:0;transform:translateY(50px) rotate(var(--rr,-3deg)) scale(.96);transition:opacity .7s,transform .9s var(--ease)}
+.reveal.in{opacity:1;transform:none}
+.reveal .sec-h{transform:scale(1.5) rotate(-6deg);opacity:0;transition:transform .7s var(--ease) .15s,opacity .4s .15s}
+.reveal.in .sec-h{transform:none;opacity:1}
+.paperbox{position:relative;background:url(card_cream.webp) center/100% 100% no-repeat;padding:clamp(18px,4.5vw,28px) clamp(18px,5vw,30px);filter:drop-shadow(5px 8px 4px rgba(0,0,0,.45));color:var(--ink)}
+.searchbox{display:flex;gap:8px;transform:rotate(.7deg)}
+.searchbox input{flex:1;min-width:0;border:0;border-bottom:2px dashed rgba(18,10,31,.45);background:transparent;font:500 17px Onest;color:var(--ink);padding:10px 4px;outline:none}
+.searchbox input::placeholder{color:rgba(18,10,31,.5)}
+.searchbox button{background:url(paper_violet.jpg) center/cover;color:var(--paper);font:800 14px Unbounded;padding:0 14px;clip-path:polygon(2% 6%,98% 0,100% 94%,0 100%)}
+.note{margin-top:14px;font-size:13px;color:var(--lilac);text-shadow:0 1px 2px rgba(0,0,0,.6);max-width:560px}
+.ticket{display:flex;align-items:center;gap:16px;width:100%;text-align:left;transform:rotate(-1.4deg);transition:transform .35s var(--ease)}
+.ticket:hover{transform:rotate(1deg) scale(1.03)}
+.ticket:active{transform:scale(.97)}
+.ticket .tape{position:absolute;width:110px}
+.ticket .tape.t1{left:-14px;top:-16px;transform:rotate(-30deg)}
+.ticket .tape.t2{right:-12px;bottom:-14px;transform:rotate(-24deg)}
+.play{flex:none;width:64px;height:64px;border-radius:50%;background:url(paper_yellow.jpg) center/cover;display:grid;place-items:center;box-shadow:inset 0 0 0 3px var(--ink),3px 4px 0 var(--ink);animation:throb 1.333s ease-in-out infinite}
+@keyframes throb{0%,100%{transform:scale(1)}12%{transform:scale(1.09)}}
+.play svg{width:22px;fill:var(--ink);margin-left:4px}
+.ticket .title img{height:clamp(34px,8.5vw,52px);width:auto;margin-left:-6px}
+.ticket p{font:500 13px Onest;color:rgba(18,10,31,.7);margin-top:4px}
+.stamp{position:absolute;right:16px;top:-14px;font:20px 'Black Ops One';color:var(--violet2);border:3px solid var(--violet2);padding:2px 10px;transform:rotate(9deg);background:rgba(243,236,220,.85);mix-blend-mode:multiply}
+.own{position:relative;background:url(strip_ink.webp) center/100% 100% no-repeat;padding:30px 24px;display:grid;gap:10px;filter:drop-shadow(5px 8px 4px rgba(0,0,0,.45))}
+.own .deco-star{position:absolute;right:-6px;bottom:-26px;width:76px;animation:spin 12s linear infinite}
+.own label{font:700 12px Unbounded;letter-spacing:.04em;color:var(--acid)}
+.own textarea{width:100%;min-height:90px;background:rgba(243,236,220,.08);color:var(--paper);border:1px dashed rgba(205,188,255,.45);padding:10px;font:14px/1.4 'Special Elite',ui-monospace,monospace;resize:vertical}
+.own input[type=file]{color:var(--lilac);font-size:14px}
+.btn{justify-self:start;background:url(paper_yellow.jpg) center/cover;color:var(--ink);font:800 15px Unbounded;padding:14px 20px;clip-path:polygon(0 8%,97% 0,100% 90%,3% 100%);margin-top:4px;transition:transform .25s var(--ease)}
+.btn:hover{transform:rotate(-2deg) scale(1.05)}
+
+/* loading overlay */
+#loading{position:fixed;inset:0;z-index:70;display:grid;place-items:center;background:rgba(14,4,34,.7);backdrop-filter:blur(4px)}
+#loading div{padding:16px 24px;background:url(strip_yellow.webp) center/100% 100%;color:var(--ink);font:15px 'Special Elite',monospace;animation:pulse 1s ease-in-out infinite}
+
+/* ---------- player ---------- */
+#player{height:100vh;height:100dvh;display:flex;flex-direction:column;overflow:hidden}
+#ppaint{position:fixed;inset:0;width:100%;height:100%;z-index:0;opacity:.55;pointer-events:none}
+.deco{position:fixed;pointer-events:none;z-index:1}
+.deco.d1{width:min(42vw,340px);left:-8vw;bottom:8vh;opacity:.35;transform:rotate(-10deg)}
+.deco.d2{width:min(46vw,380px);right:-12vw;top:14vh;opacity:.28;transform:rotate(8deg)}
+.topbar{position:relative;z-index:3;display:flex;align-items:center;gap:10px;padding:14px 14px 6px;flex-wrap:wrap;animation:drop .7s var(--ease) both}
+.iconbtn{width:44px;height:44px;display:grid;place-items:center;background:url(paper_cream.jpg) center/cover;color:var(--ink);font:800 20px Unbounded;flex:none;
+  clip-path:polygon(4% 0,100% 6%,96% 100%,0 94%)}
+.titlebox{flex:1;min-width:0}
+#ptitle img{height:clamp(32px,8vw,48px);width:auto;filter:drop-shadow(2px 3px 2px rgba(0,0,0,.4))}
+#partist{font:500 12px Onest;color:var(--lilac);margin-top:2px;padding-left:4px;text-shadow:0 1px 2px #000}
+.tools{display:flex;gap:7px;align-items:center;flex-wrap:wrap;width:100%}
+.seg{display:flex;gap:4px}
+.seg button,.chip{padding:8px 11px;font:700 11px Unbounded;color:var(--ink);background:url(paper_cream.jpg) center/cover;clip-path:polygon(0 6%,100% 0,97% 100%,3% 94%);opacity:.85;transition:transform .2s var(--ease)}
+.seg button:active,.chip:active{transform:scale(.92)}
+.seg button.on{background-image:url(paper_yellow.jpg);opacity:1}
+.chip.on{background-image:url(paper_violet.jpg);color:var(--paper);opacity:1}
+.spacer{flex:1}
+#stage{position:relative;z-index:2;flex:1;overflow:hidden;-webkit-mask-image:linear-gradient(transparent 0,#000 15%,#000 80%,transparent 100%);mask-image:linear-gradient(transparent 0,#000 15%,#000 80%,transparent 100%)}
+#stage::before{content:"";position:absolute;inset:0;background:radial-gradient(90% 60% at 40% 42%,rgba(12,3,30,.6),rgba(12,3,30,.2) 70%,transparent)}
+#lyrics{position:relative;list-style:none;padding:0 7vw;max-width:980px;margin:0 auto;transition:transform .8s cubic-bezier(.2,.8,.2,1);will-change:transform}
+.line{position:relative;padding:.32em 0 .42em;font-size:var(--fs);transform-origin:left center;transform:scale(.82) translateX(-.2em);opacity:.32;filter:blur(.6px);
+  transition:transform .7s var(--ease),opacity .5s,filter .5s}
+.line.near{opacity:.55;filter:none}
+.line.past{opacity:.24}
+.line.active{transform:scale(1);opacity:1;filter:none}
+.line.active::before{content:"";position:absolute;left:-.8em;top:.34em;width:.62em;height:.62em;background:url(star_yellow.webp) center/contain no-repeat;
+  animation:spin 5s linear infinite;scale:calc(1 + var(--beat)*.35)}
+.en{font:700 1em/1.14 Unbounded;letter-spacing:-.01em;color:rgba(244,238,255,.92);text-shadow:0 2px 10px rgba(10,2,26,.6)}
+.w{display:inline-block;cursor:pointer;margin-right:.24em}
+.line.past .en{color:rgba(238,252,140,.8)}
+.line.active .w{color:transparent;-webkit-background-clip:text;background-clip:text;text-shadow:none;
+  background-image:linear-gradient(90deg,var(--fill) calc(var(--w,0)*112% - 12%),rgba(245,240,255,.62) calc(var(--w,0)*112%))}
+.line.active .en{filter:drop-shadow(0 2px 8px rgba(10,2,26,.7))}
+.w.pop{animation:pop .45s var(--ease)}
+@keyframes pop{0%{transform:none}35%{transform:translateY(-.12em) scale(1.12) rotate(-2deg)}100%{transform:none}}
+.tr{display:inline-block;font:500 .44em/1.35 Onest;color:var(--ink);margin-top:.45em;padding:.18em .6em .22em;cursor:pointer;background:url(strip_lilac.webp) center/100% 100% no-repeat;opacity:.55;transform:rotate(-.6deg)}
+.line.active .tr{opacity:1;background-image:url(strip_yellow.webp);animation:trin .6s var(--ease)}
+@keyframes trin{from{transform:rotate(-6deg) scale(.7);opacity:0}}
+.tr:empty{display:none}
+body.notr .tr{display:none}
+.intro{font:700 var(--fs) Unbounded;color:var(--lilac);opacity:.6;letter-spacing:.3em;padding:.3em 0}
+.bottombar{position:relative;z-index:3;display:flex;align-items:center;gap:14px;margin:0 6px 10px;padding:22px 20px 22px 16px;background:url(strip_ink.webp) center/100% 100% no-repeat;animation:drop .7s var(--ease) both .2s}
+#playbtn{flex:none;width:66px;height:66px;border-radius:50%;background:url(paper_yellow.jpg) center/cover;display:grid;place-items:center;box-shadow:inset 0 0 0 3px var(--ink),3px 4px 0 var(--violet);scale:calc(1 + var(--beat)*.08);transition:transform .2s var(--ease)}
+#playbtn:active{transform:scale(.9)}
+#playbtn svg{width:24px;fill:var(--ink)}
+.prog{flex:1;display:grid;gap:6px}
+.time{display:flex;justify-content:space-between;align-items:center;font:500 12px 'Special Elite',monospace;color:var(--lilac)}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:8px;background:url(paper_violet.jpg) center/cover;outline:none;clip-path:polygon(0 20%,100% 0,100% 80%,0 100%)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;background:url(star_yellow.webp) center/contain no-repeat}
+input[type=range]::-moz-range-thumb{width:22px;height:22px;border:0;background:url(star_yellow.webp) center/contain no-repeat}
+#seekwrap{padding:6px 0}
+#sync{display:flex;gap:6px;align-items:center}
+body.focus .topbar .hide-focus{display:none}
+#tip{position:fixed;z-index:60;background:url(paper_yellow.jpg) center/cover;color:var(--ink);padding:12px 16px;font:700 15px Onest;max-width:240px;
+  clip-path:polygon(0 5%,100% 0,97% 100%,2% 95%);transform:rotate(-2deg) scale(.8);opacity:0;pointer-events:none;transition:opacity .2s,transform .3s var(--ease)}
+#tip.show{opacity:1;transform:rotate(-2deg) scale(1)}
+#tip b{font:800 13px Unbounded;display:block;margin-bottom:3px}
+#toast{position:fixed;left:50%;bottom:24px;z-index:60;transform:translateX(-50%) translateY(250%);opacity:0;background:url(paper_cream.jpg) center/cover;color:var(--ink);
+  padding:16px 20px;font:500 15px Onest;max-width:92vw;clip-path:polygon(0 4%,100% 0,98% 100%,1% 96%);transition:transform .45s var(--ease),opacity .3s}
+#toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+.cutout{display:flex;flex-wrap:wrap;align-items:center;gap:.06em;font-size:clamp(18px,4.6vw,26px);filter:drop-shadow(3px 4px 0 rgba(0,0,0,.45))}
+.cl{display:inline-block;padding:.08em .14em .02em;line-height:1;transform:rotate(var(--r)) translateY(var(--y))}
+.cl.sp{width:.35em;padding:0}
+#results{display:grid;gap:12px;margin-top:16px}
+.res{position:relative;display:flex;gap:12px;align-items:center;width:100%;text-align:left;background:url(card_cream.webp) center/100% 100% no-repeat;color:var(--ink);
+  padding:16px 18px;filter:drop-shadow(4px 6px 3px rgba(0,0,0,.4));transform:rotate(var(--rr,0deg));transition:transform .3s var(--ease);animation:drop .6s var(--ease) both;animation-delay:var(--d,0s)}
+.res:hover{transform:rotate(0) scale(1.02)}
+.res b{font:800 15px Unbounded;display:block;line-height:1.2}
+.res small{font:500 13px Onest;opacity:.7}
+.res .tagl{flex:none;font:11px 'Special Elite',monospace;padding:4px 8px;background:url(paper_yellow.jpg) center/cover}
+.res .tagl.no{background-image:url(paper_violet.jpg);color:var(--paper)}
+.res .pl{flex:none;width:44px;height:44px;border-radius:50%;background:url(paper_violet.jpg) center/cover;display:grid;place-items:center}
+.res .pl svg{width:16px;fill:var(--paper);margin-left:3px}
+.msg{font:15px 'Special Elite',monospace;color:var(--ink);background:url(strip_yellow.webp) center/100% 100%;padding:12px 18px;width:fit-content;animation:pulse 1.2s ease-in-out infinite}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.chips .lab{width:100%;font:700 11px Unbounded;color:var(--acid);letter-spacing:.06em}
+.chips button{padding:8px 12px;font:600 13px Onest;color:var(--ink);background:url(paper_cream.jpg) center/cover;clip-path:polygon(0 6%,100% 0,97% 100%,3% 94%);transition:transform .2s var(--ease)}
+.chips button:nth-child(3n){background-image:url(paper_yellow.jpg)}
+.chips button:hover{transform:rotate(-2deg) scale(1.05)}
+#status{position:relative;z-index:3;min-height:0;text-align:center;font:13px 'Special Elite',monospace;color:var(--acid);padding:0 16px}
+#ytwrap{position:fixed;z-index:6;right:12px;bottom:118px;width:200px;aspect-ratio:16/9;background:#000;padding:5px;
+  background:url(paper_cream.jpg) center/cover;filter:drop-shadow(4px 6px 4px rgba(0,0,0,.5));transform:rotate(2deg);transition:width .4s var(--ease),transform .4s var(--ease)}
+#ytwrap.big{width:min(94vw,560px);transform:rotate(0)}
+#ytwrap.mini{width:200px;opacity:.0001;pointer-events:none}
+#yt,#ytwrap iframe{width:100%;height:100%;display:block}
+#ytsize{position:absolute;left:-10px;top:-12px;padding:4px 8px;font-size:12px}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01s!important;animation-iteration-count:1!important}}
+</style>
+</head>
+<body>
+<div id="fx"><div class="blob bv"></div><div class="blob bb"></div><div class="blob bg"></div></div>
+<div class="vignette"></div>
+<div id="grain"></div>
+
+<!-- ===== HOME ===== -->
+<main id="home" class="screen">
+  <section id="draw">
+    <canvas id="paint"></canvas>
+    <div class="inner">
+      <div class="logo"><img class="word" src="logo.webp" alt="SINGLISH"><img class="star shadow" src="star_yellow.webp" alt=""></div>
+      <div class="hint">✦ веди пальцем — фон малюється ✦</div>
+      <div class="collage" id="collage">
+        <div class="layer" style="--x:58%;--y:6%;--w:40%;--r:7deg;--z:-6;--d:.3s"><img class="shadow" src="L_violet.webp" alt=""></div>
+        <div class="layer" style="--x:-3%;--y:7%;--w:54%;--r:-6deg;--z:-3;--d:.4s"><img class="shadow" src="pc_crowd.webp" alt=""></div>
+        <div class="layer" style="--x:40%;--y:14%;--w:50%;--r:5deg;--z:3;--d:.55s"><img class="shadow" src="L_yellow.webp" alt=""></div>
+        <div class="layer" style="--x:44%;--y:0%;--w:40%;--r:4deg;--z:12;--d:.75s"><img class="shadow" src="pc_bassist.webp" alt=""></div>
+        <div class="layer float" style="--x:1%;--y:48%;--w:27%;--r:-12deg;--z:16;--d:.95s"><img class="shadow" src="pc_mic.webp" alt=""></div>
+        <div class="layer float" style="--x:20%;--y:66%;--w:38%;--r:-8deg;--z:20;--d:1.1s"><img class="shadow" src="st_cassette.webp" alt=""></div>
+        <div class="layer" style="--x:6%;--y:2%;--w:24%;--r:-18deg;--z:6;--d:1.2s"><img src="tape4.webp" alt=""></div>
+        <div class="layer" style="--x:82%;--y:10%;--w:15%;--r:10deg;--z:14;--d:1.25s"><img src="tape1.webp" alt=""></div>
+        <div class="layer float" style="--x:86%;--y:58%;--w:12%;--r:0deg;--z:22;--d:1.3s"><img class="shadow" src="star_violet.webp" alt=""></div>
+        <div class="layer float" style="--x:57%;--y:84%;--w:38%;--r:-6deg;--z:18;--d:1.4s"><img src="w_loud.webp" alt=""></div>
+      </div>
+      <div class="tag"><img class="tape" src="tape5.webp" alt=""><span>вчи англійську — просто співай ★</span></div>
+    </div>
+    <div class="scrolldown">↓ SCROLL</div>
+  </section>
+
+  <div class="marquee"><div class="track" id="mq1"></div></div>
+  <div class="marquee m2"><div class="track" id="mq2"></div></div>
+
+  <div class="wrap">
+    <section class="sec reveal" style="--rr:2deg">
+      <img class="sec-h" src="h_search.webp" alt="знайди пісню">
+      <div class="paperbox"><form class="searchbox" id="search"><input placeholder="Виконавець — назва" aria-label="Пошук пісні"><button>ШУКАТИ</button></form></div>
+      <div id="results"></div>
+      <div id="recent" class="chips"></div>
+      <div class="chips" id="ideas"></div>
+    </section>
+
+    <section class="sec reveal" style="--rr:-3deg">
+      <img class="sec-h" src="h_demo.webp" alt="демо">
+      <button class="ticket paperbox" id="demoBtn">
+        <img class="tape t1" src="tape4.webp" alt=""><img class="tape t2" src="tape2.webp" alt="">
+        <span class="stamp">DEMO</span>
+        <span class="play"><svg viewBox="0 0 20 20"><path d="M3 1l15 9-15 9z"/></svg></span>
+        <span class="title"><img src="t_paperstars.webp" alt="Paper Stars"><p>Singlish Demo · 1:10 · переклад українською</p></span>
+      </button>
+    </section>
+
+    <section class="sec reveal" style="--rr:3deg">
+      <img class="sec-h" src="h_own.webp" alt="своя пісня">
+      <div class="own">
+        <img class="deco-star" src="star_yellow.webp" alt="">
+        <label>1 · АУДІОФАЙЛ (mp3, m4a…)</label>
+        <input type="file" id="ownAudio" accept="audio/*">
+        <label>2 · ТЕКСТ ІЗ ТАЙМІНГОМ (LRC)</label>
+        <textarea id="ownLrc" placeholder="[00:12.30] First line of the song&#10;[00:16.80] Second line…"></textarea>
+        <label>3 · ПЕРЕКЛАД ПОРЯДКОВО (необов’язково)</label>
+        <textarea id="ownTr" placeholder="Перший рядок перекладу&#10;Другий рядок…"></textarea>
+        <button class="btn" id="ownGo">ПОГНАЛИ →</button>
+      </div>
+    </section>
+  </div>
+</main>
+
+<!-- ===== PLAYER ===== -->
+<section id="player" class="screen hidden">
+  <canvas id="ppaint"></canvas>
+  <img class="deco d1" src="st_walkman.webp" alt="">
+  <img class="deco d2" src="pc_glitch.webp" alt="">
+  <div class="topbar">
+    <button class="iconbtn" id="back" aria-label="Назад">←</button>
+    <div class="titlebox hide-focus"><div id="ptitle"></div><div id="partist"></div></div>
+    <div class="tools">
+      <div class="seg" id="langs"></div>
+      <div class="spacer"></div>
+      <button class="chip hide-focus" id="smaller" aria-label="Менший текст">A−</button>
+      <button class="chip hide-focus" id="bigger" aria-label="Більший текст">A+</button>
+      <button class="chip hide-focus" id="vidBtn">📺 відео</button>
+      <button class="chip" id="focusBtn">⤢ великим</button>
+    </div>
+  </div>
+  <div id="status"></div>
+  <div id="stage"><ul id="lyrics"></ul></div>
+  <div id="ytwrap" class="hidden"><div id="yt"></div><button id="ytsize" class="chip">⤢</button></div>
+  <div class="bottombar">
+    <button id="playbtn" aria-label="Грати"></button>
+    <div class="prog">
+      <div id="seekwrap"><input type="range" id="seek" min="0" max="1000" value="0" aria-label="Перемотування"></div>
+      <div class="time"><span id="cur">0:00</span>
+        <span id="sync" class="hidden">синхр. <button class="chip" id="sMinus">−0.5</button><span id="sVal">0.0с</span><button class="chip" id="sPlus">+0.5</button></span>
+        <span id="dur">0:00</span></div>
+    </div>
+  </div>
+</section>
+
+<div id="loading" class="hidden"><div>♪ налаштовую звук…</div></div>
+<div id="tip"></div>
+<div id="toast"></div>
+
+<script>
+/* ---------- helpers ---------- */
+const $=s=>document.querySelector(s);
+const store={get(k,d){try{const v=localStorage.getItem('singlish.'+k);return v===null?d:JSON.parse(v)}catch(e){return d}},
+             set(k,v){try{localStorage.setItem('singlish.'+k,JSON.stringify(v))}catch(e){}}};
+function rng(seed){let a=seed>>>0;return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const fmt=s=>{s=Math.max(0,s|0);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
+const ICON_PLAY='<svg viewBox="0 0 20 20"><path d="M5 2l13 8-13 8z"/></svg>';
+const ICON_PAUSE='<svg viewBox="0 0 20 20"><path d="M3 1h5v18H3zM12 1h5v18h-5z"/></svg>';
+
+/* ---------- cut-out letters ---------- */
+const FONTS=["Anton","'Bowlby One'","'Abril Fatface'","'Special Elite'","'Rubik Mono One'","'Black Ops One'","'Permanent Marker'","Unbounded"];
+const SKINS=[["#f3ecdc","#120a1f"],["#e8ff4a","#120a1f"],["#120a1f","#f3ecdc"],["#7b3cff","#f3ecdc"],["#cdbcff","#120a1f"],["#f3ecdc","#5a22d6"],["#2b1166","#e8ff4a"]];
+function cutout(el,text,seed){
+  const r=rng(seed||text.length*97+text.charCodeAt(0));el.innerHTML='';let prev=-1;
+  for(const ch of text){
+    const s=document.createElement('span');
+    if(ch===' '){s.className='cl sp';el.appendChild(s);continue}
+    let k;do{k=Math.floor(r()*SKINS.length)}while(k===prev);prev=k;
+    const [bg,fg]=SKINS[k];const p=()=>(r()*7).toFixed(1);
+    s.className='cl';s.textContent=ch;
+    s.style.cssText=`background:${bg};color:${fg};font-family:${FONTS[Math.floor(r()*FONTS.length)]};--r:${(r()*14-7).toFixed(1)}deg;--y:${(r()*.12-.06).toFixed(2)}em;`+
+      `clip-path:polygon(${p()}% ${p()}%,${100-p()}% ${p()}%,${100-p()}% ${100-p()}%,${p()}% ${100-p()}%)`;
+    if(r()<.25)s.style.textTransform='lowercase';
+    el.appendChild(s);
+  }
+}
+
+/* ---------- demo song (original lyrics) ---------- */
+const V1=[["Cut the letters out of yesterday","Вирізаю літери зі вчорашнього дня"],
+ ["Glue them on a violet sky","Клею їх на фіолетове небо"],
+ ["Every word I couldn't say","Кожне слово, що я не міг(ла) сказати"],
+ ["I'm gonna sing it anyway","Я все одно його заспіваю"]];
+const CH=[["Turn it up, turn it loud","Зроби гучніше, на повну"],
+ ["Paper stars are falling down","Паперові зірки падають донизу"],
+ ["I don't know the words right now","Я поки не знаю слів"],
+ ["But I'm learning how","Але я вчуся"]];
+const V2=[["Coffee, headphones, half past three","Кава, навушники, пів на четверту"],
+ ["Every song's a dictionary","Кожна пісня — це словник"],
+ ["Line by line it's coming back to me","Рядок за рядком усе повертається до мене"],
+ ["Louder than I used to be","Гучніше, ніж раніше"]];
+const DEMO={id:'demo',title:'Paper Stars',titleImg:'t_paperstars.webp',artist:'Singlish Demo · оригінальна пісня',duration:70,
+  langs:[['uk','UA']],
+  lines:[...V1,...CH,...V2,...CH].map((l,i)=>({t:4+i*4,en:l[0],tr:{uk:l[1]}})),
+  gloss:{cut:'різати, вирізати',letters:'літери; листи',yesterday:'вчора',glue:'клеїти',
+   violet:'фіолетовий',sky:'небо',word:'слово',say:'сказати',sing:'співати',anyway:'все одно',
+   "gonna":'= going to, збираюся',turn:'повертати; turn up — зробити гучніше',loud:'гучний, гучно',
+   paper:'папір, паперовий',stars:'зірки',falling:'падають',know:'знати',words:'слова',
+   now:'зараз',learning:'вчуся, вивчаю',how:'як',coffee:'кава',headphones:'навушники',half:'половина',
+   past:'після (half past three — 3:30)',three:'три',song:'пісня',dictionary:'словник',line:'рядок',
+   coming:'приходить, повертається',back:'назад',louder:'гучніше',used:'used to — колись (було)',
+   "couldn't":'не міг(ла)',every:'кожен',"don't":'не (заперечення)'}
+};
+
+/* ================= audio: demo rendered to a real audio file ================= */
+// WebAudio is muted by the iPhone silent switch, an <audio> element is not.
+// So the demo track is rendered offline into a WAV and played like any song.
+try{if(navigator.audioSession)navigator.audioSession.type='playback'}catch(e){}
+async function renderDemo(dur){
+  const SR=22050,O=window.OfflineAudioContext||window.webkitOfflineAudioContext;
+  const c=new O(1,Math.ceil(SR*dur),SR);
+  const master=c.createGain();master.gain.value=.6;
+  const comp=c.createDynamicsCompressor();master.connect(comp);comp.connect(c.destination);
+  const nb=c.createBuffer(1,SR*.5,SR),nd=nb.getChannelData(0);for(let i=0;i<nd.length;i++)nd[i]=Math.random()*2-1;
+  const env=(node,w,a,peak,rel,dest=master)=>{const g=c.createGain();g.gain.setValueAtTime(0,w);g.gain.linearRampToValueAtTime(peak,w+a);g.gain.exponentialRampToValueAtTime(.0001,w+a+rel);node.connect(g);g.connect(dest);return g};
+  const beat=60/90,CH=[[220,261.6,329.6],[174.6,220,261.6],[261.6,329.6,392],[196,246.9,293.7]];
+  const end=dur-1.5;
+  for(let i=0;i*beat<end;i++){
+    const w=i*beat,inBar=i%4,intro=i<6,ch=CH[Math.floor(i/8)%4];
+    if(i%8===0)ch.forEach(f=>{const o=c.createOscillator();o.type='triangle';o.frequency.value=f;const lp=c.createBiquadFilter();lp.type='lowpass';lp.frequency.value=1300;o.connect(lp);env(lp,w,.4,.05,8*beat);o.start(w);o.stop(w+8*beat+.5)});
+    [0,.5].forEach(o2=>{const s=c.createBufferSource();s.buffer=nb;const hp=c.createBiquadFilter();hp.type='highpass';hp.frequency.value=7000;s.connect(hp);env(hp,w+o2*beat,.002,o2?.06:.1,.05);s.start(w+o2*beat);s.stop(w+o2*beat+.1)});
+    if(intro)continue;
+    if(inBar===0||inBar===2){const o=c.createOscillator();o.frequency.setValueAtTime(140,w);o.frequency.exponentialRampToValueAtTime(42,w+.15);env(o,w,.003,.9,.28);o.start(w);o.stop(w+.35)}
+    if(inBar===1||inBar===3){const s=c.createBufferSource();s.buffer=nb;const bp=c.createBiquadFilter();bp.type='bandpass';bp.frequency.value=1600;bp.Q.value=.8;s.connect(bp);env(bp,w,.002,.32,.16);s.start(w);s.stop(w+.25)}
+    const o=c.createOscillator();o.type='sawtooth';o.frequency.value=ch[0]/2;const lp=c.createBiquadFilter();lp.type='lowpass';lp.frequency.value=420;o.connect(lp);env(lp,w,.01,.2,beat*.8);o.start(w);o.stop(w+beat);
+  }
+  // lead melody that follows the lyrics (one note per word)
+  const SCALE=[220,261.6,293.7,329.6,392,440,523.3,587.3];
+  DEMO.lines.forEach((l,li)=>{
+    const words=l.en.split(/\s+/),r=rng(li%8+3),chorus=(li%8)>=4,span=2.9;
+    words.forEach((wd,k)=>{
+      const t=l.t+k*span/words.length,len=span/words.length*.9;
+      let idx=Math.floor(r()*5)+(chorus?2:0);if(k===words.length-1)idx=chorus?5:2;
+      const f=SCALE[Math.min(7,idx)];
+      const o=c.createOscillator();o.type='square';o.frequency.value=f;
+      const v=c.createOscillator(),vg=c.createGain();v.frequency.value=5.5;vg.gain.value=f*.012;v.connect(vg);vg.connect(o.frequency);
+      const lp=c.createBiquadFilter();lp.type='lowpass';lp.frequency.value=1900;o.connect(lp);
+      env(lp,t,.03,.07,len);o.start(t);o.stop(t+len+.1);v.start(t);v.stop(t+len+.1);
+    });
+  });
+  const buf=await c.startRendering(),d=buf.getChannelData(0);
+  const ab=new ArrayBuffer(44+d.length*2),dv=new DataView(ab);
+  const ws=(o,s)=>{for(let i=0;i<s.length;i++)dv.setUint8(o+i,s.charCodeAt(i))};
+  ws(0,'RIFF');dv.setUint32(4,36+d.length*2,true);ws(8,'WAVE');ws(12,'fmt ');dv.setUint32(16,16,true);dv.setUint16(20,1,true);dv.setUint16(22,1,true);
+  dv.setUint32(24,SR,true);dv.setUint32(28,SR*2,true);dv.setUint16(32,2,true);dv.setUint16(34,16,true);ws(36,'data');dv.setUint32(40,d.length*2,true);
+  for(let i=0;i<d.length;i++)dv.setInt16(44+i*2,Math.max(-1,Math.min(1,d[i]))*32767,true);
+  return URL.createObjectURL(new Blob([ab],{type:'audio/wav'}));
+}
+let demoURL=null;
+class FilePlayer{
+  constructor(url,fallback,keep){this.a=new Audio();this.a.src=url;this.a.preload='auto';this.a.setAttribute('playsinline','');this.fallback=fallback;this.keep=keep}
+  get duration(){return isFinite(this.a.duration)&&this.a.duration>0?this.a.duration:this.fallback}
+  get playing(){return !this.a.paused}
+  time(){return this.a.currentTime}
+  async play(){try{await this.a.play()}catch(e){toast('Не вдалося ввімкнути звук — натисни ще раз')}}
+  pause(){this.a.pause()}
+  seek(s){try{this.a.currentTime=s}catch(e){}}
+  destroy(){this.a.pause();if(!this.keep)URL.revokeObjectURL(this.a.src)}
+}
+
+/* ================= painter: gradient that appears where you draw ================= */
+class Painter{
+  constructor(cv,{auto=true,interactive=true,strength=1}={}){
+    this.cv=cv;this.ctx=cv.getContext('2d');this.auto=auto;this.strength=strength;
+    this.mask=document.createElement('canvas');this.mx=this.mask.getContext('2d');
+    this.grad=document.createElement('canvas');this.gx=this.grad.getContext('2d');
+    this.star=new Image();this.star.src='star_yellow.webp';
+    this.parts=[];this.last=null;this.idle=0;this.t=0;this.ghost=null;this.running=false;
+    this.resize();addEventListener('resize',()=>this.resize());
+    if(interactive){
+      const el=cv.parentElement;
+      el.addEventListener('pointermove',e=>this.move(e));
+      el.addEventListener('pointerdown',e=>{this.last=null;this.move(e)});
+      el.addEventListener('pointerleave',()=>this.last=null);
+    }
+  }
+  resize(){const r=this.cv.getBoundingClientRect(),s=.5;this.k=s;
+    this.w=Math.max(2,Math.round(r.width*s));this.h=Math.max(2,Math.round(r.height*s));
+    [this.cv,this.mask].forEach(c=>{c.width=this.w;c.height=this.h});this.grad.width=Math.ceil(this.w/4);this.grad.height=Math.ceil(this.h/4)}
+  move(e){const r=this.cv.getBoundingClientRect();this.stroke((e.clientX-r.left)*this.k,(e.clientY-r.top)*this.k,true)}
+  stroke(x,y,user){
+    if(user){this.idle=0;this.ghost=null}
+    const now=performance.now();
+    if(this.last){
+      const dx=x-this.last.x,dy=y-this.last.y,dist=Math.hypot(dx,dy),v=dist/Math.max(8,now-this.last.t)*16;
+      const rad=Math.min(95,30+v*1.6)*(this.w/380+.4)*.55;
+      const n=Math.ceil(dist/(rad*.25));
+      for(let i=1;i<=n;i++)this.dab(this.last.x+dx*i/n,this.last.y+dy*i/n,rad);
+      if(v>14&&Math.random()<.35&&this.parts.length<40)this.parts.push({x,y,vx:dx*.06+(Math.random()-.5)*2,vy:dy*.06-1.5,a:1,s:6+Math.random()*10,r:Math.random()*6,vr:(Math.random()-.5)*.3});
+    }
+    this.last={x,y,t:now};
+  }
+  dab(x,y,r){const g=this.mx.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,'rgba(255,255,255,.7)');g.addColorStop(1,'rgba(255,255,255,0)');this.mx.fillStyle=g;this.mx.beginPath();this.mx.arc(x,y,r,0,7);this.mx.fill()}
+  burst(power){ // used by the player on beats
+    const x=Math.random()*this.w,y=Math.random()*this.h,r=(60+power*90)*(this.w/380+.4)*.5;
+    for(let i=0;i<3;i++)this.dab(x+(Math.random()-.5)*r,y+(Math.random()-.5)*r,r);
+  }
+  paintGradient(){
+    const g=this.gx,W=this.grad.width,H=this.grad.height,t=this.t;
+    g.fillStyle='#4316c4';g.fillRect(0,0,W,H);
+    const spots=[['123,60,255',.5+.4*Math.sin(t*.7),.4+.35*Math.cos(t*.5),.75],['59,91,255',.5+.45*Math.cos(t*.43),.6+.3*Math.sin(t*.61),.7],
+      ['232,255,74',.5+.42*Math.sin(t*.37+2),.5+.4*Math.sin(t*.53+1),.5],['205,140,255',.5+.4*Math.cos(t*.29+4),.3+.4*Math.cos(t*.47+3),.6],['20,230,200',.5+.4*Math.sin(t*.23+5),.7+.25*Math.cos(t*.31),.35]];
+    g.globalCompositeOperation='source-over';
+    spots.forEach(([c,x,y,s])=>{const R=Math.max(W,H)*s,gr=g.createRadialGradient(x*W,y*H,0,x*W,y*H,R);gr.addColorStop(0,`rgba(${c},.9)`);gr.addColorStop(1,`rgba(${c},0)`);g.fillStyle=gr;g.fillRect(0,0,W,H)});
+    g.globalCompositeOperation='source-over';
+  }
+  frame(dt){
+    this.t+=dt*.001;this.idle+=dt;
+    // ghost painter when nobody draws
+    if(this.auto&&this.idle>2200){
+      if(!this.ghost)this.ghost={t:0,ph:Math.random()*6,cx:.3+Math.random()*.4,cy:.25+Math.random()*.5};
+      const G=this.ghost;G.t+=dt*.001;
+      const x=(G.cx+.32*Math.sin(G.t*1.7+G.ph)*Math.cos(G.t*.6))*this.w,y=(G.cy+.22*Math.sin(G.t*2.3+G.ph))*this.h;
+      this.stroke(x,y,false);if(G.t>3.2){this.ghost=null;this.idle=1200;this.last=null}
+    }
+    // fade the drawing slowly
+    this.mx.globalCompositeOperation='destination-out';this.mx.fillStyle=`rgba(0,0,0,${.012*dt/16})`;this.mx.fillRect(0,0,this.w,this.h);this.mx.globalCompositeOperation='source-over';
+    this.paintGradient();
+    const c=this.ctx;c.clearRect(0,0,this.w,this.h);
+    c.imageSmoothingQuality='high';c.drawImage(this.grad,0,0,this.w,this.h);
+    c.globalCompositeOperation='destination-in';c.drawImage(this.mask,0,0);c.globalCompositeOperation='source-over';
+    // sparkle stars
+    this.parts=this.parts.filter(p=>p.a>0);
+    this.parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.06;p.a-=.012*dt/16;p.r+=p.vr;
+      if(this.star.complete){c.save();c.globalAlpha=Math.max(0,p.a);c.translate(p.x,p.y);c.rotate(p.r);c.drawImage(this.star,-p.s/2,-p.s/2,p.s,p.s);c.restore()}});
+  }
+  start(){if(this.running)return;this.running=true;let lt=performance.now();
+    const loop=t=>{if(!this.running)return;const dt=Math.min(50,t-lt);lt=t;
+      const r=this.cv.getBoundingClientRect();if(r.bottom>0&&r.top<innerHeight)this.frame(dt);requestAnimationFrame(loop)};requestAnimationFrame(loop)}
+  stop(){this.running=false}
+}
+const homePaint=new Painter($('#paint'));homePaint.start();
+let playerPaint=null;
+
+/* collage parallax */
+(function(){const z=$('#draw');let tx=0,ty=0;
+  z.addEventListener('pointermove',e=>{const r=z.getBoundingClientRect();tx=((e.clientX-r.left)/r.width-.5)*2;ty=((e.clientY-r.top)/r.height-.5)*2;
+    z.style.setProperty('--px',tx.toFixed(3));z.style.setProperty('--py',ty.toFixed(3))});
+  addEventListener('deviceorientation',e=>{if(e.gamma==null)return;z.style.setProperty('--px',(e.gamma/30).toFixed(3));z.style.setProperty('--py',((e.beta-45)/30).toFixed(3))});
+})();
+/* marquees */
+(function(){const a='SING <i>✦</i> LEARN <i>✦</i> REPEAT <i>✦</i> СПІВАЙ <i>✦</i> ВЧИСЬ <i>✦</i> ПОВТОРЮЙ <i>✦</i> ',b='turn it up ★ paper stars ★ line by line ★ louder ★ ';
+  $('#mq1').innerHTML=`<span>${a.repeat(3)}</span><span>${a.repeat(3)}</span>`;$('#mq2').innerHTML=`<span>${b.repeat(4)}</span><span>${b.repeat(4)}</span>`})();
+/* scroll reveal */
+(function(){const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.18});
+  document.querySelectorAll('.reveal').forEach(el=>io.observe(el))})();
+
+/* ================= karaoke engine ================= */
+let song=null,player=null,cur=-2,sync=0,lang=store.get('lang','uk'),fsScale=store.get('fs',1),lastBeat=-1;
+const lyr=$('#lyrics'),stage=$('#stage');
+
+function openSong(s,p){
+  song=s;player=p;cur=-2;sync=0;lastBeat=-1;$('#sVal').textContent='0.0с';
+  if(s.titleImg){$('#ptitle').className='';$('#ptitle').innerHTML=`<img src="${s.titleImg}" alt="${esc(s.title)}">`}else{$('#ptitle').className='cutout';cutout($('#ptitle'),s.title.toUpperCase(),s.title.length*11)}
+  $('#partist').textContent=s.artist;
+  $('#sync').classList.toggle('hidden',s.id==='demo');
+  const L=$('#langs');L.innerHTML='';
+  const opts=[...s.langs,['off','без перекладу']];
+  if(!s.langs.find(x=>x[0]===lang))lang=s.langs.length?s.langs[0][0]:'off';
+  opts.forEach(([k,lab])=>{const b=document.createElement('button');b.textContent=lab;b.dataset.k=k;b.onclick=()=>setLang(k);L.appendChild(b)});
+  lyr.innerHTML='<li class="intro" id="introDots">• • •</li>'+s.lines.map((l,i)=>{
+    const words=l.en.split(/\s+/);const total=l.en.replace(/\s/g,'').length||1;let acc=0;
+    const ws=words.map(w=>{const a=acc/total;acc+=w.length;const b=acc/total;return `<span class="w" data-a="${a.toFixed(4)}" data-b="${b.toFixed(4)}">${esc(w)}</span>`}).join('');
+    return `<li class="line" data-i="${i}"><div class="en">${ws}</div><div class="tr"></div></li>`}).join('');
+  $('#home').classList.add('hidden');$('#player').classList.remove('hidden');window.scrollTo(0,0);
+  homePaint.stop();
+  if(!playerPaint)playerPaint=new Painter($('#ppaint'),{auto:true,interactive:false});
+  playerPaint.resize();playerPaint.start();
+  setLang(lang);applyFs();
+  $('#dur').textContent=fmt(player.duration);
+  if(player.a){player.a.addEventListener('loadedmetadata',()=>$('#dur').textContent=fmt(player.duration));player.a.addEventListener('ended',setPlayIcon)}
+  $('#ytwrap').classList.toggle('hidden',!player.yt);$('#vidBtn').classList.toggle('hidden',!player.yt);setStatus('');
+  requestAnimationFrame(()=>center(-1,true));
+  setPlayIcon();loop();
+}
+function esc(t){return t.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+function setLang(k){lang=k;store.set('lang',k);document.body.classList.toggle('notr',k==='off');
+  document.querySelectorAll('#langs button').forEach(b=>b.classList.toggle('on',b.dataset.k===k));
+  if(k!=='off')lyr.querySelectorAll('.line').forEach(li=>{li.querySelector('.tr').textContent=(song.lines[+li.dataset.i].tr||{})[k]||''});
+  requestAnimationFrame(()=>center(cur,true))}
+function applyFs(){const base=document.body.classList.contains('focus')?'clamp(32px,8.4vw,68px)':'clamp(26px,6.6vw,52px)';
+  document.documentElement.style.setProperty('--fs',`calc(${base} * ${fsScale})`);requestAnimationFrame(()=>center(cur,true))}
+function center(i,instant){
+  const el=i<0?$('#introDots'):lyr.children[i+1];if(!el)return;
+  const y=stage.clientHeight*.4-(el.offsetTop+el.offsetHeight/2);
+  if(instant){lyr.style.transition='none';lyr.style.transform=`translateY(${y}px)`;lyr.offsetHeight;lyr.style.transition=''}
+  else lyr.style.transform=`translateY(${y}px)`}
+function setActive(i){
+  lyr.querySelectorAll('.line').forEach((li,k)=>{li.classList.toggle('active',k===i);li.classList.toggle('past',k<i);li.classList.toggle('near',Math.abs(k-i)===1&&k>i);
+    if(k!==i)li.querySelectorAll('.w').forEach(w=>{w.style.removeProperty('--w');w.classList.remove('pop');w._done=false})});
+  center(i);if(playerPaint)playerPaint.burst(1.2);
+}
+let raf,seeking=false;
+function loop(){
+  cancelAnimationFrame(raf);
+  const step=()=>{
+    if(!song)return;const t=player.time()+sync,L=song.lines;
+    let i=-1;for(let k=0;k<L.length;k++){if(t>=L[k].t)i=k;else break}
+    if(i!==cur){cur=i;setActive(i)}
+    if(i>=0){
+      const start=L[i].t,next=i+1<L.length?L[i+1].t:start+5;
+      const len=song.id==='demo'?2.9:Math.min((next-start)*.88,1+L[i].en.length*.11);
+      const p=Math.max(0,Math.min(1,(t-start)/len));
+      lyr.children[i+1].querySelectorAll('.w').forEach(w=>{const a=+w.dataset.a,b=+w.dataset.b,v=Math.max(0,Math.min(1,(p-a)/(b-a||1)));
+        w.style.setProperty('--w',v.toFixed(3));if(v>=1&&!w._done){w._done=true;w.classList.add('pop')}});
+    }
+    // beat pulse (demo tempo is known; for own songs use a gentle 2s breathe)
+    const bt=song.id==='demo'?60/90:2,ph=(player.time()%bt)/bt,bi=Math.floor(player.time()/bt);
+    document.body.style.setProperty('--beat',player.playing?Math.pow(1-ph,3).toFixed(3):0);
+    if(player.playing&&bi!==lastBeat){lastBeat=bi;if(playerPaint&&bi%2===0)playerPaint.burst(.6)}
+    $('#cur').textContent=fmt(player.time());
+    if(!seeking)$('#seek').value=Math.round(player.time()/(player.duration||1)*1000);
+    raf=requestAnimationFrame(step)};step();
+}
+function setPlayIcon(){$('#playbtn').innerHTML=player&&player.playing?ICON_PAUSE:ICON_PLAY}
+
+$('#playbtn').onclick=async()=>{if(player.playing)player.pause();else await player.play();setTimeout(setPlayIcon,300);setPlayIcon()};
+$('#seek').addEventListener('input',()=>{seeking=true;$('#cur').textContent=fmt($('#seek').value/1000*player.duration)});
+$('#seek').addEventListener('change',()=>{player.seek($('#seek').value/1000*player.duration);seeking=false});
+$('#back').onclick=()=>{$('#ytwrap').classList.add('hidden');player.destroy();song=null;player=null;cancelAnimationFrame(raf);if(playerPaint)playerPaint.stop();document.body.classList.remove('focus');$('#focusBtn').classList.remove('on');
+  document.body.style.setProperty('--beat',0);$('#player').classList.add('hidden');$('#home').classList.remove('hidden');homePaint.resize();homePaint.start()};
+$('#bigger').onclick=()=>{fsScale=Math.min(1.6,+(fsScale+.1).toFixed(2));store.set('fs',fsScale);applyFs()};
+$('#smaller').onclick=()=>{fsScale=Math.max(.7,+(fsScale-.1).toFixed(2));store.set('fs',fsScale);applyFs()};
+$('#focusBtn').onclick=()=>{document.body.classList.toggle('focus');$('#focusBtn').classList.toggle('on');applyFs()};
+$('#sMinus').onclick=()=>{sync=+(sync-.5).toFixed(1);$('#sVal').textContent=sync.toFixed(1)+'с'};
+$('#sPlus').onclick=()=>{sync=+(sync+.5).toFixed(1);$('#sVal').textContent=sync.toFixed(1)+'с'};
+addEventListener('resize',()=>{if(song)center(cur,true)});
+document.addEventListener('keydown',e=>{if(e.code==='Space'&&player&&e.target.tagName!=='INPUT'&&e.target.tagName!=='TEXTAREA'){e.preventDefault();$('#playbtn').click()}});
+lyr.addEventListener('click',e=>{
+  const w=e.target.closest('.w'),li=e.target.closest('.line');if(!li)return;
+  if(w){const key=w.textContent.toLowerCase().replace(/[^a-z']/g,'').replace(/^'|'$/g,'');
+    const g=song.gloss&&song.gloss[key];
+    if(g){showTip(w,key,g);return}
+    showTip(w,key,'…');wordTr(key).then(t=>showTip(w,key,t||'не знайшов переклад'));return}
+  player.seek(Math.max(0,song.lines[+li.dataset.i].t-sync-.05));
+});
+let tipT;
+function showTip(el,word,text){const tip=$('#tip'),r=el.getBoundingClientRect();tip.innerHTML=`<b>${esc(word)}</b>${esc(text)}`;
+  tip.style.left=Math.min(innerWidth-250,Math.max(8,r.left))+'px';tip.style.top=Math.max(8,r.top-74)+'px';tip.classList.add('show');
+  clearTimeout(tipT);tipT=setTimeout(()=>tip.classList.remove('show'),2600)}
+let toastT;
+function toast(t){const el=$('#toast');el.textContent=t;el.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('show'),3800)}
+/* ================= online: lyrics (LRCLIB), video (YouTube), translation ================= */
+function setStatus(t){$('#status').textContent=t||''}
+async function getJSON(url,ms=9000){const c=new AbortController(),tm=setTimeout(()=>c.abort(),ms);
+  try{const r=await fetch(url,{signal:c.signal});if(!r.ok)throw new Error(r.status);return await r.json()}finally{clearTimeout(tm)}}
+const LRC='https://lrclib.net/api';
+async function searchSongs(q){
+  const parts=q.split(/\s+[—–-]\s+/);let url=`${LRC}/search?q=${encodeURIComponent(q)}`;
+  if(parts.length===2)url=`${LRC}/search?artist_name=${encodeURIComponent(parts[0])}&track_name=${encodeURIComponent(parts[1])}`;
+  let r=await getJSON(url);if(!r.length&&parts.length===2)r=await getJSON(`${LRC}/search?q=${encodeURIComponent(q)}`);
+  // synced first, drop duplicates
+  const seen=new Set();return r.sort((a,b)=>(!!b.syncedLyrics)-(!!a.syncedLyrics)).filter(x=>{const k=(x.artistName+x.trackName).toLowerCase();if(seen.has(k))return false;seen.add(k);return true}).slice(0,10);
+}
+function renderResults(list){
+  const R=$('#results');
+  if(!list.length){R.innerHTML='<div class="msg">Нічого не знайшов 😿 Спробуй інакше: «виконавець — назва»</div>';return}
+  R.innerHTML='';list.forEach((x,i)=>{const b=document.createElement('button');b.className='res';b.style.setProperty('--rr',((i%2?1:-1)*(.6+i%3*.4))+'deg');b.style.setProperty('--d',(i*.06)+'s');
+    b.innerHTML=`<span class="pl"><svg viewBox="0 0 20 20"><path d="M3 1l15 9-15 9z"/></svg></span><span style="flex:1;min-width:0"><b>${esc(x.trackName)}</b><small>${esc(x.artistName)} · ${fmt(x.duration)}</small></span>`+
+      (x.syncedLyrics?'<span class="tagl">⏱ караоке</span>':x.instrumental?'<span class="tagl no">без слів</span>':'<span class="tagl no">лише текст</span>');
+    b.onclick=()=>playTrack(x);R.appendChild(b)});
+}
+$('#search').onsubmit=async e=>{e.preventDefault();const q=$('#search input').value.trim();if(!q)return;
+  $('#results').innerHTML='<div class="msg">шукаю…</div>';
+  try{renderResults(await searchSongs(q))}catch(err){$('#results').innerHTML='<div class="msg">Не вдалося зв’язатися з базою текстів. Перевір інтернет і спробуй ще.</div>'}};
+const IDEAS=['Billie Eilish — Birds of a Feather','Imagine Dragons — Believer','Arctic Monkeys — Do I Wanna Know?','Olivia Rodrigo — good 4 u','The Weeknd — Blinding Lights','Lana Del Rey — Summertime Sadness','Nirvana — Smells Like Teen Spirit','Dua Lipa — Levitating'];
+function chips(el,label,items){el.innerHTML=items.length?`<span class="lab">${label}</span>`:'';items.forEach(q=>{const b=document.createElement('button');b.textContent=q;b.onclick=()=>{$('#search input').value=q;$('#search').requestSubmit()};el.appendChild(b)})}
+function refreshChips(){chips($('#recent'),'НЕЩОДАВНО',store.get('recent',[]).slice(0,6));chips($('#ideas'),'СПРОБУЙ',IDEAS)}
+refreshChips();
+
+/* --- YouTube video lookup (no key needed; optional key in localStorage 'ytkey') --- */
+const PIPED=['https://pipedapi.kavin.rocks','https://api.piped.private.coffee','https://pipedapi.adminforge.de'];
+const INV=['https://inv.nadeko.net','https://invidious.nerdvpn.de','https://yewtu.be'];
+async function findVideos(artist,track,dur){
+  const q=`${artist} ${track}`;let out=[];
+  const key=store.get('ytkey','');
+  if(key){try{const r=await getJSON(`https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&videoEmbeddable=true&maxResults=6&q=${encodeURIComponent(q)}&key=${key}`);
+    out=r.items.map(i=>({id:i.id.videoId,title:i.snippet.title,len:0}))}catch(e){}}
+  if(!out.length)for(const h of PIPED){try{const r=await getJSON(`${h}/search?q=${encodeURIComponent(q)}&filter=videos`,6000);
+    out=(r.items||[]).filter(i=>i.url&&i.duration>0).slice(0,8).map(i=>({id:i.url.split('v=')[1],title:i.title,len:i.duration}));if(out.length)break}catch(e){}}
+  if(!out.length)for(const h of INV){try{const r=await getJSON(`${h}/api/v1/search?q=${encodeURIComponent(q)}&type=video`,6000);
+    out=r.slice(0,8).map(i=>({id:i.videoId,title:i.title,len:i.lengthSeconds}));if(out.length)break}catch(e){}}
+  // prefer the version whose length matches the lyrics timing; avoid live/cover/remix
+  const bad=/live|cover|remix|sped|slowed|karaoke|reaction|8d/i,good=/audio|lyric|official/i;
+  out.forEach(v=>{v.score=(v.len?Math.abs(v.len-dur):6)+(bad.test(v.title)?40:0)-(good.test(v.title)?2:0)});
+  return out.sort((a,b)=>a.score-b.score);
+}
+let ytReady=null;
+function loadYT(){if(ytReady)return ytReady;ytReady=new Promise(res=>{window.onYouTubeIframeAPIReady=res;const s=document.createElement('script');s.src='https://www.youtube.com/iframe_api';document.head.appendChild(s)});return ytReady}
+class YTPlayer{
+  constructor(ids,dur,onFail){this.yt=true;this.ids=ids;this.k=0;this.fallback=dur;this.onFail=onFail;this.ready=false;this.p=null}
+  async init(){await loadYT();$('#yt').replaceWith(Object.assign(document.createElement('div'),{id:'yt'}));
+    return new Promise(res=>{this.p=new YT.Player('yt',{videoId:this.ids[0].id,playerVars:{playsinline:1,rel:0,modestbranding:1,controls:0,disablekb:1},
+      events:{onReady:()=>{this.ready=true;res()},onStateChange:()=>setPlayIcon(),onError:()=>this.next()}})})}
+  next(){this.k++;if(this.k<this.ids.length){setStatus('це відео не вбудовується — пробую інше…');this.p.loadVideoById(this.ids[this.k].id)}else this.onFail&&this.onFail()}
+  get duration(){const d=this.ready&&this.p.getDuration?this.p.getDuration():0;return d>0?d:this.fallback}
+  get playing(){return this.ready&&this.p.getPlayerState&&this.p.getPlayerState()===1}
+  time(){return this.ready&&this.p.getCurrentTime?this.p.getCurrentTime():0}
+  play(){if(this.ready)this.p.playVideo()}
+  pause(){if(this.ready)this.p.pauseVideo()}
+  seek(s){if(this.ready)this.p.seekTo(s,true)}
+  destroy(){try{this.p.destroy()}catch(e){}}
+}
+
+/* --- translation into Ukrainian --- */
+async function gtx(text,extra=''){const r=await getJSON(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=uk&dt=t${extra}&q=${encodeURIComponent(text)}`);return r}
+async function translateLines(lines){
+  const out=[];let chunk=[];const flush=async()=>{if(!chunk.length)return;
+    try{const r=await gtx(chunk.join('\n'));const t=r[0].map(x=>x[0]).join('').split('\n');chunk.forEach((_,i)=>out.push((t[i]||'').trim()))}
+    catch(e){for(const l of chunk){try{const m=await getJSON(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(l)}&langpair=en|uk`);out.push(m.responseData.translatedText)}catch(e2){out.push('')}}}
+    chunk=[]};
+  for(const l of lines){if(chunk.join('\n').length+l.length>1500)await flush();chunk.push(l)}await flush();return out;
+}
+const wordCache={};
+async function wordTr(w){if(wordCache[w])return wordCache[w];
+  try{const r=await gtx(w,'&dt=bd');let t=r[0].map(x=>x[0]).join('');
+    if(r[1])t=r[1].slice(0,2).map(p=>p[1].slice(0,3).join(', ')).join('; ');return wordCache[w]=t}catch(e){return ''}}
+
+/* --- open a found song --- */
+async function playTrack(x){
+  if(!x.syncedLyrics&&!x.plainLyrics){toast('Для цієї пісні немає тексту');return}
+  const rec=store.get('recent',[]).filter(r=>r!==`${x.artistName} — ${x.trackName}`);rec.unshift(`${x.artistName} — ${x.trackName}`);store.set('recent',rec.slice(0,8));refreshChips();
+  let lines;
+  if(x.syncedLyrics)lines=parseLRC(x.syncedLyrics);
+  else{const raw=x.plainLyrics.split('\n').map(s=>s.trim()).filter(Boolean),step=(x.duration-10)/raw.length;lines=raw.map((en,i)=>({t:5+i*step,en}));toast('У цієї пісні немає таймінгу — рядки йдуть рівномірно, підлаштуй «синхр.»')}
+  lines=lines.filter(l=>l.en&&!/^[♪\s]*$/.test(l.en));
+  $('#loading').classList.remove('hidden');$('#loading div').textContent='♪ шукаю відео…';
+  let vids=[];try{vids=await findVideos(x.artistName,x.trackName,x.duration)}catch(e){}
+  $('#loading').classList.add('hidden');
+  const s={id:'lrc'+x.id,title:x.trackName.slice(0,30),artist:x.artistName,lines,langs:[['uk','UA']],gloss:{}};
+  if(!vids.length){
+    const u=await askVideo(x);if(!u)return;vids=[{id:u}];
+  }
+  const p=new YTPlayer(vids,x.duration,()=>setStatus('YouTube не дає вбудувати цю пісню 😿 Встав інше посилання через ⚙'));
+  openSong(s,p);setStatus('завантажую відео…');
+  await p.init();$('#dur').textContent=fmt(p.duration);setStatus('');toast('Натисни ▶ — і співай!');
+  // translation in background
+  const key='tr:'+x.id;let tr=store.get(key,null);
+  if(!tr){setStatus('перекладаю українською…');try{tr=await translateLines(lines.map(l=>l.en));store.set(key,tr)}catch(e){tr=[]}setStatus('')}
+  if(song===s){lines.forEach((l,i)=>l.tr={uk:tr[i]||''});setLang(lang)}
+}
+function ytId(u){const m=String(u).match(/(?:v=|youtu\.be\/|shorts\/|embed\/)([\w-]{11})/);return m?m[1]:(/^[\w-]{11}$/.test(u)?u:null)}
+function askVideo(x){return new Promise(res=>{
+  const box=document.createElement('div');box.id='ask';box.innerHTML=`<div class="paperbox" style="max-width:520px;margin:20vh auto 0">
+    <b style="font:800 16px Unbounded">Не знайшов відео автоматично</b>
+    <p style="margin:10px 0;font:14px Onest">Відкрий <a href="https://www.youtube.com/results?search_query=${encodeURIComponent(x.artistName+' '+x.trackName+' audio')}" target="_blank" rel="noopener">пошук на YouTube</a>, скопіюй посилання на відео і встав сюди:</p>
+    <div class="searchbox"><input id="askIn" placeholder="https://youtu.be/…"><button id="askOk">ОК</button></div>
+    <button id="askNo" style="margin-top:10px;font:13px Onest;text-decoration:underline">скасувати</button></div>`;
+  Object.assign(box.style,{position:'fixed',inset:0,zIndex:80,background:'rgba(14,4,34,.75)',padding:'16px'});document.body.appendChild(box);
+  $('#askOk').onclick=()=>{const id=ytId($('#askIn').value.trim());if(!id){toast('Це не схоже на посилання YouTube');return}box.remove();res(id)};
+  $('#askNo').onclick=()=>{box.remove();res(null)};
+})}
+$('#vidBtn').onclick=()=>{const w=$('#ytwrap');w.classList.toggle('big');$('#vidBtn').classList.toggle('on',w.classList.contains('big'))};
+$('#ytsize').onclick=()=>$('#vidBtn').click();
+$('#demoBtn').onclick=async()=>{
+  if(!demoURL){$('#loading').classList.remove('hidden');try{demoURL=await renderDemo(DEMO.duration)}catch(e){toast('Не вдалося зібрати звук демо');$('#loading').classList.add('hidden');return}$('#loading').classList.add('hidden')}
+  openSong(DEMO,new FilePlayer(demoURL,DEMO.duration,true));toast('Натисни ▶ — і співай!');
+};
+$('#ownGo').onclick=()=>{
+  const f=$('#ownAudio').files[0];const raw=$('#ownLrc').value;
+  if(!f){toast('Обери аудіофайл');return}
+  const lines=parseLRC(raw);if(!lines.length){toast('Встав текст у форматі LRC: [хх:сс.xx] рядок');return}
+  const tr=$('#ownTr').value.split('\n').map(s=>s.trim()).filter(Boolean);
+  lines.forEach((l,i)=>l.tr={mine:tr[i]||''});
+  const s={id:'own',title:f.name.replace(/\.[^.]+$/,'').slice(0,28),artist:'твій файл',lines,langs:tr.length?[['mine','ПЕРЕКЛАД']]:[],gloss:{}};
+  openSong(s,new FilePlayer(URL.createObjectURL(f),lines[lines.length-1].t+8,false));
+};
+function parseLRC(txt){
+  const out=[];txt.split(/\r?\n/).forEach(row=>{const tags=[...row.matchAll(/\[(\d+):(\d+(?:[.:]\d+)?)\]/g)];if(!tags.length)return;
+    const text=row.replace(/\[[^\]]*\]/g,'').trim();if(!text)return;
+    tags.forEach(m=>out.push({t:+m[1]*60+parseFloat(m[2].replace(':','.')),en:text}))});
+  return out.sort((a,b)=>a.t-b.t);
+}
+</script>
+</body>
+</html>
