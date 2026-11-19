@@ -133,7 +133,7 @@ img{display:block;max-width:100%;user-select:none;-webkit-user-drag:none}
 #stage{position:relative;z-index:2;flex:1;overflow:hidden;-webkit-mask-image:linear-gradient(transparent 0,#000 15%,#000 80%,transparent 100%);mask-image:linear-gradient(transparent 0,#000 15%,#000 80%,transparent 100%)}
 #stage::before{content:"";position:absolute;inset:0;background:radial-gradient(90% 60% at 40% 42%,rgba(12,3,30,.6),rgba(12,3,30,.2) 70%,transparent)}
 #lyrics{position:relative;list-style:none;padding:0 7vw;max-width:980px;margin:0 auto;transition:transform .8s cubic-bezier(.2,.8,.2,1);will-change:transform}
-.line{position:relative;padding:.32em 0 .42em;font-size:var(--fs);transform-origin:left center;transform:scale(.82) translateX(-.2em);opacity:.32;filter:blur(.6px);
+.line{cursor:pointer;position:relative;padding:.32em 0 .42em;font-size:var(--fs);transform-origin:left center;transform:scale(.82) translateX(-.2em);opacity:.32;filter:blur(.6px);
   transition:transform .7s var(--ease),opacity .5s,filter .5s}
 .line.near{opacity:.55;filter:none}
 .line.past{opacity:.24}
@@ -141,7 +141,7 @@ img{display:block;max-width:100%;user-select:none;-webkit-user-drag:none}
 .line.active::before{content:"";position:absolute;left:-.8em;top:.34em;width:.62em;height:.62em;background:url(star_yellow.webp) center/contain no-repeat;
   animation:spin 5s linear infinite;scale:calc(1 + var(--beat)*.35)}
 .en{font:700 1em/1.14 Unbounded;letter-spacing:-.01em;color:rgba(244,238,255,.92);text-shadow:0 2px 10px rgba(10,2,26,.6)}
-.w{display:inline-block;cursor:pointer;margin-right:.24em}
+.w{display:inline-block;margin-right:.24em}
 .line.past .en{color:rgba(238,252,140,.8)}
 .line.active .w{color:transparent;-webkit-background-clip:text;background-clip:text;text-shadow:none;
   background-image:linear-gradient(90deg,var(--fill) calc(var(--w,0)*112% - 12%),rgba(245,240,255,.62) calc(var(--w,0)*112%))}
@@ -154,11 +154,19 @@ img{display:block;max-width:100%;user-select:none;-webkit-user-drag:none}
 .tr:empty{display:none}
 body.notr .tr{display:none}
 .intro{font:700 var(--fs) Unbounded;color:var(--lilac);opacity:.6;letter-spacing:.3em;padding:.3em 0}
-.bottombar{position:relative;z-index:3;display:flex;align-items:center;gap:14px;margin:0 6px 10px;padding:22px 20px 22px 16px;background:url(strip_ink.webp) center/100% 100% no-repeat;animation:drop .7s var(--ease) both .2s}
+.bottombar{position:relative;z-index:3;display:grid;gap:6px;margin:0 6px 10px;padding:18px 22px 16px;background:url(strip_ink.webp) center/100% 100% no-repeat;animation:drop .7s var(--ease) both .2s}
 #playbtn{flex:none;width:66px;height:66px;border-radius:50%;background:url(paper_yellow.jpg) center/cover;display:grid;place-items:center;box-shadow:inset 0 0 0 3px var(--ink),3px 4px 0 var(--violet);scale:calc(1 + var(--beat)*.08);transition:transform .2s var(--ease)}
 #playbtn:active{transform:scale(.9)}
 #playbtn svg{width:24px;fill:var(--ink)}
-.prog{flex:1;display:grid;gap:6px}
+.ctrl{display:flex;align-items:center;justify-content:center;gap:clamp(14px,5vw,34px);font:500 12px 'Special Elite',monospace;color:var(--lilac)}
+.ctrl #cur,.ctrl #dur{width:42px}.ctrl #dur{text-align:right}
+.skip{font:700 12px Unbounded;color:var(--paper);padding:8px 6px;opacity:.85;transition:transform .2s var(--ease)}
+.skip:active{transform:scale(.85)}
+#flash{position:fixed;z-index:9;left:50%;top:45%;width:96px;height:96px;margin:-48px 0 0 -48px;border-radius:50%;display:grid;place-items:center;pointer-events:none;
+  background:url(paper_yellow.jpg) center/cover;box-shadow:inset 0 0 0 3px var(--ink);opacity:0}
+#flash svg{width:34px;fill:var(--ink)}
+#flash.go{animation:flash .7s ease-out}
+@keyframes flash{0%{opacity:.95;transform:scale(.7)}60%{opacity:.85;transform:scale(1.05)}100%{opacity:0;transform:scale(1.2)}}
 .time{display:flex;justify-content:space-between;align-items:center;font:500 12px 'Special Elite',monospace;color:var(--lilac)}
 input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:8px;background:url(paper_violet.jpg) center/cover;outline:none;clip-path:polygon(0 20%,100% 0,100% 80%,0 100%)}
 input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;background:url(star_yellow.webp) center/contain no-repeat}
@@ -198,8 +206,12 @@ body.focus .topbar .hide-focus{display:none}
 #ytwrap.drag{transform:rotate(0) scale(1.02)}
 #ytwrap.mini{opacity:.0001;pointer-events:none}
 .ythandle{position:absolute;left:12px;top:-20px;padding:3px 12px 4px;font:11px 'Special Elite',monospace;color:var(--ink);background:url(strip_yellow.webp) center/100% 100%;cursor:grab;touch-action:none;user-select:none;transform:rotate(-2deg)}
-.ygrip{position:absolute;right:-8px;bottom:-8px;width:26px;height:26px;cursor:nwse-resize;touch-action:none;
-  background:linear-gradient(135deg,transparent 45%,var(--ink) 45% 52%,transparent 52% 62%,var(--ink) 62% 69%,transparent 69%),url(paper_yellow.jpg) center/cover;clip-path:polygon(100% 0,100% 100%,0 100%)}
+.yc{position:absolute;z-index:3;width:24px;height:24px;display:grid;place-items:center;font:700 13px Onest;color:var(--ink);touch-action:none;user-select:none;
+  background:url(paper_yellow.jpg) center/cover;box-shadow:2px 2px 0 var(--ink);opacity:0;transition:opacity .2s}
+#ytwrap:hover .yc,#ytwrap.drag .yc{opacity:1}
+body.touch .yc{opacity:.9;width:28px;height:28px}
+.yc.tl{left:-10px;top:-10px;cursor:nwse-resize}.yc.br{right:-10px;bottom:-10px;cursor:nwse-resize}
+.yc.tr{right:-10px;top:-10px;cursor:nesw-resize}.yc.bl{left:-10px;bottom:-10px;cursor:nesw-resize}
 body.dragging iframe{pointer-events:none}
 body.dragging{user-select:none}
 #backNow{position:fixed;z-index:7;left:50%;bottom:122px;translate:-50% 0;padding:10px 16px;font:700 12px Unbounded;color:var(--ink);background:url(paper_yellow.jpg) center/cover;
@@ -243,7 +255,6 @@ body.dragging{user-select:none}
 .row b{display:block;font:700 14px Onest;line-height:1.25}.row small{font:13px Onest;color:var(--lilac)}
 .row .x{margin-left:auto;flex:none;color:var(--lilac);font-size:16px;padding:6px}
 .empty{font:14px 'Special Elite',monospace;color:var(--lilac);padding:10px 4px}
-@media (prefers-reduced-motion:reduce)
 #yt,#ytwrap iframe{position:absolute;left:5px;top:5px;width:calc(100% - 10px)!important;height:calc(100% - 10px)!important;display:block}
 .ytcover{position:absolute;inset:0;z-index:2;touch-action:none;cursor:grab}
 #ytsize{position:absolute;left:-10px;top:-12px;padding:4px 8px;font-size:12px}
@@ -311,25 +322,24 @@ body.dragging{user-select:none}
       <button class="chip hide-focus" id="favBtn" aria-label="В обране">♡</button>
       <button class="chip hide-focus" id="vidBtn">📺 відео</button>
       <button class="chip hide-focus" id="recBtn">✦ далі</button>
-      <button class="chip" id="focusBtn">⤢ великим</button>
     </div>
   </div>
   <div id="status"></div>
   <div id="stage"><ul id="lyrics"></ul></div>
-  <div id="ytwrap" class="hidden"><div class="ythandle" id="ythandle">⠿ тягни · 🤏 зум</div><div id="yt"></div><div class="ytcover" id="ytcover"></div><div class="ygrip" id="ygrip"></div></div>
+  <div id="ytwrap" class="hidden"><div class="ythandle" id="ythandle">⠿ тягни</div><div id="yt"></div><div class="ytcover" id="ytcover"></div><span class="yc tl" data-c="tl">↖</span><span class="yc tr" data-c="tr">↗</span><span class="yc bl" data-c="bl">↙</span><span class="yc br" data-c="br">↘</span></div>
   <button id="backNow" class="hidden">⤓ до поточного рядка</button>
   <div id="recs" class="hidden"><div class="rhead"><b>ЩО ПОСЛУХАТИ ДАЛІ</b><button id="recsClose" aria-label="Закрити">✕</button></div><div class="rrow" id="recRow"></div></div>
   <div class="bottombar">
-    <button id="playbtn" aria-label="Грати"></button>
-    <div class="prog">
-      <div id="seekwrap"><input type="range" id="seek" min="0" max="1000" value="0" aria-label="Перемотування"></div>
-      <div class="time"><span id="cur">0:00</span>
-        <span id="sync" class="hidden"><button class="chip" id="sMinus" title="текст раніше">−</button><span id="sVal">0.0с</span><button class="chip" id="sPlus" title="текст пізніше">+</button><button class="chip" id="sTap" title="натисни, коли починається рядок">⏱ тут</button></span>
-        <span id="dur">0:00</span></div>
-    </div>
+    <div id="seekwrap"><input type="range" id="seek" min="0" max="1000" value="0" aria-label="Перемотування"></div>
+    <div class="ctrl"><span id="cur">0:00</span>
+      <button class="skip" id="rew" aria-label="Назад на 10 секунд">↺ 10</button>
+      <button id="playbtn" aria-label="Грати"></button>
+      <button class="skip" id="ffw" aria-label="Вперед на 10 секунд">10 ↻</button>
+      <span id="dur">0:00</span></div>
   </div>
 </section>
 
+<div id="flash"></div>
 <div id="loading" class="hidden"><div>♪ налаштовую звук…</div></div>
 <div id="tip"></div>
 <div id="toast"></div>
@@ -537,10 +547,9 @@ const lyr=$('#lyrics'),stage=$('#stage');
 
 function openSong(s,p){
   browsing=false;stage.classList.remove('browsing');$('#backNow').classList.add('hidden');$('#recs').classList.add('hidden');
-  song=s;player=p;cur=-2;sync=store.get('sync:'+s.id,0);lastBeat=-1;showSync();
+  song=s;player=p;cur=-2;sync=0;lastBeat=-1;
   if(s.titleImg){$('#ptitle').className='';$('#ptitle').innerHTML=`<img src="${s.titleImg}" alt="${esc(s.title)}">`}else{$('#ptitle').className='cutout';cutout($('#ptitle'),s.title.toUpperCase(),s.title.length*11)}
   $('#partist').textContent=s.artist;
-  $('#sync').classList.remove('hidden');
   const L=$('#langs');L.innerHTML='';
   const opts=[...s.langs,['off','без перекладу']];
   if(!s.langs.find(x=>x[0]===lang))lang=s.langs.length?s.langs[0][0]:'off';
@@ -609,25 +618,21 @@ function loop(){
 }
 function setPlayIcon(){$('#playbtn').innerHTML=player&&player.playing?ICON_PAUSE:ICON_PLAY}
 
-$('#playbtn').onclick=async()=>{if(player.playing)player.pause();else await player.play();setTimeout(setPlayIcon,300);setPlayIcon()};
+async function togglePlay(){if(!player)return;const was=player.playing;if(was)player.pause();else await player.play();
+  const f=$('#flash');f.innerHTML=was?ICON_PAUSE:ICON_PLAY;f.classList.remove('go');void f.offsetWidth;f.classList.add('go');setTimeout(setPlayIcon,300);setPlayIcon()}
+$('#playbtn').onclick=togglePlay;
+$('#rew').onclick=()=>{if(player){player.seek(Math.max(0,player.time()-10));cur=-2}};
+$('#ffw').onclick=()=>{if(player){player.seek(Math.min(player.duration-1,player.time()+10));cur=-2}};
 $('#seek').addEventListener('input',()=>{seeking=true;$('#cur').textContent=fmt($('#seek').value/1000*player.duration)});
 $('#seek').addEventListener('change',()=>{player.seek($('#seek').value/1000*player.duration);seeking=false});
-$('#back').onclick=()=>{$('#ytwrap').classList.add('hidden');$('#recs').classList.add('hidden');endBrowse();player.destroy();song=null;player=null;cancelAnimationFrame(raf);if(playerPaint)playerPaint.stop();document.body.classList.remove('focus');$('#focusBtn').classList.remove('on');
+$('#back').onclick=()=>{$('#ytwrap').classList.add('hidden');$('#recs').classList.add('hidden');endBrowse();player.destroy();song=null;player=null;cancelAnimationFrame(raf);if(playerPaint)playerPaint.stop();
   document.body.style.setProperty('--beat',0);$('#player').classList.add('hidden');$('#home').classList.remove('hidden');homePaint.resize();homePaint.start()};
 $('#bigger').onclick=()=>{fsScale=Math.min(1.6,+(fsScale+.1).toFixed(2));store.set('fs',fsScale);applyFs()};
 $('#smaller').onclick=()=>{fsScale=Math.max(.7,+(fsScale-.1).toFixed(2));store.set('fs',fsScale);applyFs()};
-$('#focusBtn').onclick=()=>{document.body.classList.toggle('focus');$('#focusBtn').classList.toggle('on');applyFs()};
-function showSync(){$('#sVal').textContent=(sync>0?'+':'')+sync.toFixed(2)+'с'}
-function setSync(v,msg){sync=Math.round(v*100)/100;showSync();if(song)store.set('sync:'+song.id,sync);cur=-2;if(msg)toast(msg)}
-$('#sMinus').onclick=()=>setSync(sync-.25);
-$('#sPlus').onclick=()=>setSync(sync+.25);
-// tap exactly when a line starts being sung — the closest line snaps to that moment
-$('#sTap').onclick=()=>{if(!song)return;const raw=player.time(),L=song.lines;let best=null;
-  L.forEach(l=>{const d=Math.abs(l.t-(raw+sync));if(d<4&&(!best||d<best.d))best={l,d}});
-  if(!best){toast('Натисни саме тоді, коли починається рядок');return}
-  setSync(best.l.t-raw,'⏱ Синхронізовано під рядок «'+best.l.en.slice(0,28)+'…»')};
+
+
 addEventListener('resize',()=>{if(song)center(cur,true)});
-document.addEventListener('keydown',e=>{if(e.code==='Space'&&player&&e.target.tagName!=='INPUT'&&e.target.tagName!=='TEXTAREA'){e.preventDefault();$('#playbtn').click()}});
+document.addEventListener('keydown',e=>{if(e.code==='Space'&&player&&e.target.tagName!=='INPUT'&&e.target.tagName!=='TEXTAREA'){e.preventDefault();togglePlay()}});
 /* Apple-Music-style browsing: scroll the lyrics freely, tap a line to jump there */
 function startBrowse(){if(!browsing){browsing=true;stage.classList.add('browsing');$('#backNow').classList.remove('hidden')}
   clearTimeout(browseT);browseT=setTimeout(endBrowse,6000)}
@@ -639,15 +644,11 @@ stage.addEventListener('pointerdown',e=>{drag={y:e.clientY,moved:false,id:e.poin
 stage.addEventListener('pointermove',e=>{if(!drag)return;const dy=drag.y-e.clientY;if(!drag.moved&&Math.abs(dy)<8)return;drag.moved=true;drag.y=e.clientY;lyrScroll(dy)});
 addEventListener('pointerup',()=>{if(drag&&drag.moved)stage._skipClick=true;drag=null});
 $('#backNow').onclick=endBrowse;
-lyr.addEventListener('click',e=>{
+stage.addEventListener('click',e=>{
   if(stage._skipClick){stage._skipClick=false;return}
-  const w=e.target.closest('.w'),li=e.target.closest('.line');if(!li)return;
-  if(browsing){player.seek(Math.max(0,song.lines[+li.dataset.i].t-sync-.05));if(!player.playing)player.play();endBrowse();setTimeout(setPlayIcon,300);return}
-  if(w){const key=w.textContent.toLowerCase().replace(/[^a-z']/g,'').replace(/^'|'$/g,'');
-    const g=song.gloss&&song.gloss[key];
-    if(g){showTip(w,key,g);return}
-    showTip(w,key,'…');wordTr(key).then(t=>showTip(w,key,t||'не знайшов переклад'));return}
-  player.seek(Math.max(0,song.lines[+li.dataset.i].t-sync-.05));
+  if(!song)return;const li=e.target.closest('.line');
+  if(!li){togglePlay();return}
+  player.seek(Math.max(0,song.lines[+li.dataset.i].t-.05));cur=-2;if(!player.playing)player.play();endBrowse();setTimeout(setPlayIcon,300);
 });
 let tipT;
 function showTip(el,word,text){const tip=$('#tip'),r=el.getBoundingClientRect();tip.innerHTML=`<b>${esc(word)}</b>${esc(text)}`;
@@ -759,7 +760,13 @@ class YTPlayer{
 
 /* --- translation into Ukrainian --- */
 async function gtx(text,extra=''){const r=await getJSON(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=uk&dt=t${extra}&q=${encodeURIComponent(text)}`);return r}
-async function translateLines(lines){
+const SLANG=[[/\bbab(y|e)\b/gi,'darling'],[/\bgonna\b/gi,'going to'],[/\bwanna\b/gi,'want to'],[/\bgotta\b/gi,'have to'],[/\bain'?t\b/gi,'is not'],
+  [/['‘’]?cause\b/gi,'because'],[/\bcuz\b/gi,'because'],[/\btryna\b/gi,'trying to'],[/\blemme\b/gi,'let me'],[/\bgimme\b/gi,'give me'],[/\bkinda\b/gi,'kind of'],
+  [/\bsorta\b/gi,'sort of'],[/\bdunno\b/gi,'do not know'],[/\boutta\b/gi,'out of'],[/['‘’]til\b/gi,'until'],[/\bc'?mon\b/gi,'come on'],[/\by'?all\b/gi,'you all'],
+  [/\bya\b/gi,'you'],[/\bem\b/gi,'them'],[/\bin'(?=\s|$)/gi,'ing'],[/(\w)in'(?=\s|$)/gi,'$1ing'],[/\bthang\b/gi,'thing'],[/\bimma\b/gi,'I am going to'],[/\bwhatcha\b/gi,'what are you'],
+  [/\boh+\b|\bwoah\b|\bwhoa\b|\byeah+\b|\bna(-na)+\b|\bla(-la)+\b|\bhey\b/gi,m=>m]];
+function clean(l){let x=l;SLANG.forEach(([r,v])=>x=x.replace(r,v));return x.replace(/\(([^)]*)\)/g,'— $1')}
+async function translateLines(lines){lines=lines.map(clean);
   const out=[];let chunk=[];const flush=async()=>{if(!chunk.length)return;
     try{const r=await gtx(chunk.join('\n'));const t=r[0].map(x=>x[0]).join('').split('\n');chunk.forEach((_,i)=>out.push((t[i]||'').trim()))}
     catch(e){for(const l of chunk){try{const m=await getJSON(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(l)}&langpair=en|uk`);out.push(m.responseData.translatedText)}catch(e2){out.push('')}}}
@@ -790,7 +797,7 @@ async function playTrack(x,cover){
   openSong(s,p);setStatus('завантажую відео…');
   await p.init();$('#dur').textContent=fmt(p.duration);setStatus('');toast('Натисни ▶ — і співай!');
   // translation in background
-  const key='tr:'+x.id;let tr=store.get(key,null);
+  const key='tr2:'+x.id;let tr=store.get(key,null);
   if(!tr){setStatus('перекладаю українською…');try{tr=await translateLines(lines.map(l=>l.en));store.set(key,tr)}catch(e){tr=[]}setStatus('')}
   if(song===s){lines.forEach((l,i)=>l.tr={uk:tr[i]||''});setLang(lang)}
 }
@@ -820,7 +827,16 @@ $('#vidBtn').onclick=()=>{const w=$('#ytwrap');w.classList.toggle('mini');$('#vi
       const up=()=>{el.removeEventListener('pointermove',mv);el.removeEventListener('pointerup',up);el.removeEventListener('pointercancel',up);
         document.body.classList.remove('dragging');W.classList.remove('drag');apply(cur(),true)};
       el.addEventListener('pointermove',mv);el.addEventListener('pointerup',up);el.addEventListener('pointercancel',up)})}
-  hook($('#ythandle'),'move');hook($('#ygrip'),'size');
+  hook($('#ythandle'),'move');
+  if(matchMedia('(pointer:coarse)').matches){document.body.classList.add('touch');$('#ythandle').textContent='⠿ тягни · 🤏 зум'}
+  // resize from any corner, keeping 16:9 and the opposite corner in place
+  document.querySelectorAll('.yc').forEach(el=>el.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();el.setPointerCapture(e.pointerId);
+    const c=el.dataset.c,s=cur(),sx=e.clientX,sy=e.clientY,h0=s.w*9/16;document.body.classList.add('dragging');W.classList.add('drag');
+    const mv=ev=>{const dx=(ev.clientX-sx)*(c.includes('l')?-1:1),dy=(ev.clientY-sy)*(c.includes('t')?-1:1);
+      const w=Math.max(160,Math.min(innerWidth-10,s.w+(Math.abs(dx)>Math.abs(dy*16/9)?dx:dy*16/9))),h=w*9/16;
+      apply({x:c.includes('l')?s.x+s.w-w:s.x,y:c.includes('t')?s.y+h0-h:s.y,w})};
+    const up=()=>{el.removeEventListener('pointermove',mv);el.removeEventListener('pointerup',up);el.removeEventListener('pointercancel',up);document.body.classList.remove('dragging');W.classList.remove('drag');apply(cur(),true)};
+    el.addEventListener('pointermove',mv);el.addEventListener('pointerup',up);el.addEventListener('pointercancel',up)}));
   // the whole video: one finger drags, two fingers pinch-zoom, mouse wheel zooms
   const cov=$('#ytcover'),pts=new Map();let start=null;
   const dist=()=>{const [a,b]=[...pts.values()];return Math.hypot(a.x-b.x,a.y-b.y)};
@@ -833,7 +849,7 @@ $('#vidBtn').onclick=()=>{const w=$('#ytwrap');w.classList.toggle('mini');$('#vi
     else apply({x:b.x+m.x-start.m.x,y:b.y+m.y-start.m.y,w:b.w})});
   const end=e=>{pts.delete(e.pointerId);if(pts.size){begin();return}
     const tap=start&&!start.moved&&Date.now()-start.t<300;start=null;document.body.classList.remove('dragging');W.classList.remove('drag');apply(cur(),true);
-    if(tap)$('#playbtn').click()};
+    if(tap)togglePlay()};
   cov.addEventListener('pointerup',end);cov.addEventListener('pointercancel',end);
   cov.addEventListener('wheel',e=>{e.preventDefault();const c=cur();const k=e.deltaY<0?1.08:1/1.08;apply({x:c.x-(c.w*k-c.w)/2,y:c.y-(c.w*k-c.w)*9/32,w:c.w*k},true)},{passive:false});
   addEventListener('resize',()=>{const b=store.get('ytbox',null);if(b)apply(b)});
