@@ -981,6 +981,7 @@ $('#recsClose').onclick=()=>{$('#recs').classList.add('hidden');$('#recBtn').cla
 const STOP=new Set('the a an and or but so if of to in on at by for with from up as is am are was were be been it its it\'s i i\'m im me my you you\'re your we our they them their he she his her him this that these those there here what who how why when where not no yes oh ooh ah yeah hey la na do does did don\'t can can\'t will would just like got get all one too'.split(' '));
 const BANK=['love','heart','night','light','dance','never','always','feel','know','tonight','baby','world','dream','fire','time','away','again','alone','forever','money','stay','home','better','believe','crazy','hold','body','touch','eyes','mind','free','young','wild','gold','rain','sky','fall','run','ride','high','ready','real','right','slow','words','music','sing','shine'];
 let game=null;
+const FILLER=/^(m+|h?m+|u+h+|o+h+|a+h+|o+o+h*|n+a+|l+a+|d+a+|y+e+a+h+|wo+a+h*|whoa+|he+y+|ba+|ye+|i+|e+h*)$|(.)\2\2/;
 const norm=w=>w.toLowerCase().replace(/[’‘`]/g,"'").replace(/[^a-z0-9']/g,'').replace(/^'+|'+$/g,'');
 function setMode(m){document.querySelectorAll('#modes button').forEach(b=>b.classList.toggle('on',b.dataset.m===m))}
 document.querySelectorAll('#modes button').forEach(b=>b.onclick=()=>{
@@ -992,10 +993,10 @@ $('#gExit').onclick=()=>quitGame();
 
 function pickGaps(level){
   const L=song.lines,pool=new Map(),gaps=[];
-  L.forEach(l=>l.en.split(/\s+/).forEach(w=>{const n=norm(w);if(n.length>=3&&!STOP.has(n))pool.set(n,(pool.get(n)||0)+1)}));
+  L.forEach(l=>l.en.split(/\s+/).forEach(w=>{const n=norm(w);if(n.length>=3&&!STOP.has(n)&&!FILLER.test(n))pool.set(n,(pool.get(n)||0)+1)}));
   const rnd=rng(String(song.id).split('').reduce((a,c)=>a+c.charCodeAt(0),0)+level.length);
   L.forEach((l,li)=>{
-    const ws=l.en.split(/\s+/),cand=ws.map((w,wi)=>({w,wi,n:norm(w)})).filter(c=>c.n.length>=3&&!STOP.has(c.n)&&!/\d/.test(c.n));
+    const ws=l.en.split(/\s+/),cand=ws.map((w,wi)=>({w,wi,n:norm(w)})).filter(c=>c.n.length>=3&&!STOP.has(c.n)&&!/\d/.test(c.n)&&!FILLER.test(c.n));
     if(!cand.length)return;
     if(level==='easy'&&rnd()<.3)return;               // some lines stay open to breathe
     cand.sort((a,b)=>b.n.length-a.n.length+(rnd()-.5)*3);
