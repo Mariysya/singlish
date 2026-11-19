@@ -914,6 +914,51 @@ async function wordTr(w){if(wordCache[w])return wordCache[w];
   try{const r=await gtx(w,'&dt=bd');let t=r[0].map(x=>x[0]).join('');
     if(r[1])t=r[1].slice(0,2).map(p=>p[1].slice(0,3).join(', ')).join('; ');return wordCache[w]=t}catch(e){return ''}}
 
+
+/* --- word-level timings from NetEase (via our Cloudflare Worker) --- */
+const API='https://singlish.semenovaaaa70.workers.dev';
+const nw=w=>w.toLowerCase().replace(/[’']/g,'').replace(/[^a-z0-9]/g,'');
+function parseYRC(txt){const out=[];
+  txt.split('\n').forEach(row=>{const m=row.match(/^\[(\d+),(\d+)\](.*)$/);if(!m)return;
+    let str='',times=[];row=m[3];const re=/\((\d+),(\d+),\d+\)([^(]*)/g;let k;
+    while((k=re.exec(row))){const t=+k[1]/1000;for(let c=0;c<k[3].length;c++)times.push(t);str+=k[3]}
+    const words=[];str.replace(/\S+/g,(w,at)=>{words.push({w,n:nw(w),t:times[at]});return w});
+    let cs='';const ct=[];[...str.toLowerCase()].forEach((c,j)=>{if(/[a-z0-9]/.test(c)){cs+=c;ct.push(times[j])}});
+    if(words.length)out.push({t:+m[1]/1000,words,cs,ct})});
+  return out}
+function sim(a,b){if(!a.length||!b.length)return 0;const B=new Set(b);let h=0;a.forEach(x=>{if(B.has(x))h++});return h/Math.max(a.length,b.length)}
+function alignYRC(lines,yl){
+  const ln=lines.map(l=>l.en.split(/\s+/).map(nw)),yn=yl.map(y=>y.words.map(w=>w.n).filter(Boolean));
+  const ds=[];ln.forEach((a,i)=>yn.forEach((b,j)=>{{const d=lines[i].t-yl[j].t;if(Math.abs(d)<20&&sim(a,b)>=.8)ds.push(d)}}));
+  if(ds.length<3)return null;
+  const bins={};ds.forEach(d=>{const k=Math.round(d*4);bins[k]=(bins[k]||0)+1+(bins[k-1]?.5:0)});
+  const off=+Object.entries(bins).sort((a,b)=>b[1]-a[1])[0][0]/4;
+  let hit=0;const res=lines.map((l,i)=>{
+    let best=null,bd=9;yl.forEach((y,j)=>{const d=l.t-y.t;if(sim(ln[i],yn[j])>=.6&&Math.abs(d-off)<1.6&&Math.abs(d-off)<bd){bd=Math.abs(d-off);best=y}});
+    if(!best)return null;const d=l.t-best.t,ws=l.en.split(/\s+/),T=new Array(ws.length).fill(null);let p=0;
+    if(ws.map(nw).join('')===best.cs){let pos=0;ws.forEach((w,k)=>{const n=nw(w);if(n){T[k]=+(best.ct[pos]+d).toFixed(2);pos+=n.length}})}
+    else ws.forEach((w,k)=>{const n=nw(w);if(!n)return;for(let q=p;q<Math.min(best.words.length,p+4);q++)if(best.words[q].n===n){T[k]=+(best.words[q].t+d).toFixed(2);p=q+1;break}});
+    if(T.filter(x=>x!==null).length<Math.ceil(ws.length*.5))return null;
+    if(T[0]===null)T[0]=+l.t.toFixed(2);
+    for(let k=1;k<T.length;k++)if(T[k]===null){let e=k;while(e<T.length&&T[e]===null)e++;const a=T[k-1],b=e<T.length?T[e]:a+.35*(e-k+1);for(let z=k;z<e;z++)T[z]=+(a+(b-a)*(z-k+1)/(e-k+1)).toFixed(2);k=e}
+    hit++;return T});
+  return hit>=lines.length*.35?res:null}
+async function fetchWordTimes(x,lines){
+  const key='wt1:'+x.id,c=store.get(key,undefined);if(c!==undefined)return c;
+  let res=null;
+  try{const tc=x.trackName.replace(/\[.*?\]|\(.*?\)|\s-\s.*$/g,'').trim(),ac=x.artistName.split(/[;,&]| feat| ft\./i)[0].trim();
+    const sr=await getJSON(`${API}/ne/search?q=${encodeURIComponent(ac+' '+tc)}`,8000);
+    const tn=nw(tc),an=nw(ac),junk=/karaoke|cover|remix|live|tribute|instrumental|originally|sped|slowed/i;
+    const cand=((sr.result&&sr.result.songs)||[]).filter(s=>!junk.test(s.name)&&nw(s.name).includes(tn)&&(s.artists||[]).some(a=>nw(a.name).includes(an)||an.includes(nw(a.name)))&&Math.abs(s.duration/1000-x.duration)<25)
+      .sort((a,b)=>Math.abs(a.duration/1000-x.duration)-Math.abs(b.duration/1000-x.duration)).slice(0,4);
+    for(const s of cand){const ly=await getJSON(`${API}/ne/lyric?id=${s.id}`,8000);const y=ly.yrc&&ly.yrc.lyric;if(!y)continue;
+      res=alignYRC(lines,parseYRC(y));if(res)break}
+  }catch(e){return null}
+  store.set(key,res);return res}
+async function attachWordTimes(x,s){const T=await fetchWordTimes(x,s.lines);if(!T||song!==s)return;
+  s.lines.forEach((l,i)=>{if(T[i])l.words=T[i].map(t=>({t}))});
+  lyr.querySelectorAll('.line').forEach(li=>{const l=s.lines[+li.dataset.i];if(!l.words)return;li.querySelectorAll('.w').forEach((w,k)=>{if(l.words[k])w.dataset.t=l.words[k].t})});
+  s.wordSync=true}
 /* --- open a found song --- */
 async function playTrack(x,cover){
   if(!x.syncedLyrics&&!x.plainLyrics){toast('Для цієї пісні немає тексту');return}
@@ -930,7 +975,7 @@ async function playTrack(x,cover){
     const u=await askVideo(x);if(!u)return;vids=[{id:u}];
   }
   const p=new YTPlayer(vids,x.duration,()=>setStatus('YouTube не дає вбудувати цю пісню 😿 Встав інше посилання через ⚙'));
-  openSong(s,p);setStatus('завантажую відео…');
+  openSong(s,p);attachWordTimes(x,s);setStatus('завантажую відео…');
   await p.init();$('#dur').textContent=fmt(p.duration);setStatus('');toast('Натисни ▶ — і співай!');
   // translation in background
   const key='tr2:'+x.id;let tr=store.get(key,null);
@@ -1313,6 +1358,11 @@ function gameTick(t,i){
   const L=song.lines;
   // a gap whose line has finished without an answer
   for(const g of game.gaps){if(g.state!=='wait')continue;const end=g.li+1<L.length?L[g.li+1].t:L[g.li].t+5;
+    const wt=L[g.li].words&&L[g.li].words[g.wi]?L[g.li].words[g.wi].t:null;
+    if(wt!==null){ // precise: stop right before the hidden word
+      if(t>wt+2&&!game.waiting){resolve(g,'miss');break}
+      if(t>=wt-.22&&!game.waiting&&player.playing){game.waiting=true;player.pause();setPlayIcon();showQ(g,true)}
+      break}
     if(t>=end-.05){
       if(game.level==='easy'){if(!game.waiting&&player.playing){game.waiting=true;player.pause();setPlayIcon();showQ(g,true)}return}
       resolve(g,'miss');}
