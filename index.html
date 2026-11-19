@@ -1068,11 +1068,8 @@ async function playTrack(x,cover){
   closeBubble();if(!store.get('buddyQuiet',0))setTimeout(()=>{if(song===s&&!player.playing&&!game)askHow(true)},1400);
   await p.init();$('#dur').textContent=fmt(p.duration);setStatus('');toast('Натисни ▶ — і співай!');
   // translation in background
-  const key='tr3:'+x.id;let tr=store.get(key,null);
-  if(!tr){setStatus('перекладаю українською…');
-    try{const r=await aiCall('translate',lines.map(l=>l.en),x.artistName+' — '+x.trackName);if(Array.isArray(r)&&r.length===lines.length)tr=r.map(String)}catch(e){}
-    if(!tr){tr=store.get('tr2:'+x.id,null);if(!tr)try{tr=await translateLines(lines.map(l=>l.en))}catch(e){tr=[]}}
-    else store.set(key,tr);setStatus('')}
+  const key='tr2:'+x.id;let tr=store.get(key,null);
+  if(!tr){setStatus('перекладаю українською…');try{tr=await translateLines(lines.map(l=>l.en));store.set(key,tr)}catch(e){tr=[]}setStatus('')}
   if(song===s){lines.forEach((l,i)=>l.tr={uk:tr[i]||''});setLang(lang)}
 }
 function ytId(u){const m=String(u).match(/(?:v=|youtu\.be\/|shorts\/|embed\/)([\w-]{11})/);return m?m[1]:(/^[\w-]{11}$/.test(u)?u:null)}
