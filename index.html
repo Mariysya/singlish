@@ -324,7 +324,7 @@ body.dragging{user-select:none}
     <div class="prog">
       <div id="seekwrap"><input type="range" id="seek" min="0" max="1000" value="0" aria-label="Перемотування"></div>
       <div class="time"><span id="cur">0:00</span>
-        <span id="sync" class="hidden">синхр. <button class="chip" id="sMinus">−0.5</button><span id="sVal">0.0с</span><button class="chip" id="sPlus">+0.5</button></span>
+        <span id="sync" class="hidden"><button class="chip" id="sMinus" title="текст раніше">−</button><span id="sVal">0.0с</span><button class="chip" id="sPlus" title="текст пізніше">+</button><button class="chip" id="sTap" title="натисни, коли починається рядок">⏱ тут</button></span>
         <span id="dur">0:00</span></div>
     </div>
   </div>
@@ -537,17 +537,19 @@ const lyr=$('#lyrics'),stage=$('#stage');
 
 function openSong(s,p){
   browsing=false;stage.classList.remove('browsing');$('#backNow').classList.add('hidden');$('#recs').classList.add('hidden');
-  song=s;player=p;cur=-2;sync=0;lastBeat=-1;$('#sVal').textContent='0.0с';
+  song=s;player=p;cur=-2;sync=store.get('sync:'+s.id,0);lastBeat=-1;showSync();
   if(s.titleImg){$('#ptitle').className='';$('#ptitle').innerHTML=`<img src="${s.titleImg}" alt="${esc(s.title)}">`}else{$('#ptitle').className='cutout';cutout($('#ptitle'),s.title.toUpperCase(),s.title.length*11)}
   $('#partist').textContent=s.artist;
-  $('#sync').classList.toggle('hidden',s.id==='demo');
+  $('#sync').classList.remove('hidden');
   const L=$('#langs');L.innerHTML='';
   const opts=[...s.langs,['off','без перекладу']];
   if(!s.langs.find(x=>x[0]===lang))lang=s.langs.length?s.langs[0][0]:'off';
   opts.forEach(([k,lab])=>{const b=document.createElement('button');b.textContent=lab;b.dataset.k=k;b.onclick=()=>setLang(k);L.appendChild(b)});
   lyr.innerHTML='<li class="intro" id="introDots">• • •</li>'+s.lines.map((l,i)=>{
-    const words=l.en.split(/\s+/);const total=l.en.replace(/\s/g,'').length||1;let acc=0;
-    const ws=words.map(w=>{const a=acc/total;acc+=w.length;const b=acc/total;return `<span class="w" data-a="${a.toFixed(4)}" data-b="${b.toFixed(4)}">${esc(w)}</span>`}).join('');
+    const words=l.en.split(/\s+/),syl=w=>Math.max(1,(w.toLowerCase().replace(/e\b/,'').match(/[aeiouy]+/g)||[]).length)+.35;
+    const total=words.reduce((s,w)=>s+syl(w),0);let acc=0;l.syl=total;
+    const ws=words.map((w,k)=>{const a=acc/total;acc+=syl(w);const b=acc/total;const wt=l.words&&l.words[k]?` data-t="${l.words[k].t}"`:'';
+      return `<span class="w" data-a="${a.toFixed(4)}" data-b="${b.toFixed(4)}"${wt}>${esc(w)}</span>`}).join('');
     return `<li class="line" data-i="${i}"><div class="en">${ws}</div><div class="tr"></div></li>`}).join('');
   $('#home').classList.add('hidden');$('#player').classList.remove('hidden');window.scrollTo(0,0);
   homePaint.stop();
@@ -585,15 +587,17 @@ let raf,seeking=false;
 function loop(){
   cancelAnimationFrame(raf);
   const step=()=>{
-    if(!song)return;const t=player.time()+sync,L=song.lines;
+    if(!song)return;const t=player.time()+sync+.08,L=song.lines;
     let i=-1;for(let k=0;k<L.length;k++){if(t>=L[k].t)i=k;else break}
     if(i!==cur){cur=i;setActive(i)}
     if(i>=0){
       const start=L[i].t,next=i+1<L.length?L[i+1].t:start+5;
-      const len=song.id==='demo'?2.9:Math.min((next-start)*.88,1+L[i].en.length*.11);
-      const p=Math.max(0,Math.min(1,(t-start)/len));
-      lyr.children[i+1].querySelectorAll('.w').forEach(w=>{const a=+w.dataset.a,b=+w.dataset.b,v=Math.max(0,Math.min(1,(p-a)/(b-a||1)));
-        w.style.setProperty('--w',v.toFixed(3));});
+      const gap=next-start,len=Math.max(.6,Math.min(gap*.94,.35+(L[i].syl||4)*.27));
+      const p=Math.max(0,Math.min(1,(t-start)/len)),ws=lyr.children[i+1].querySelectorAll('.w');
+      ws.forEach((w,k)=>{let v;
+        if(w.dataset.t){const wt=+w.dataset.t,nt=ws[k+1]&&ws[k+1].dataset.t?+ws[k+1].dataset.t:Math.min(next,wt+.6);v=(t-wt)/Math.max(.08,nt-wt)}
+        else{const a=+w.dataset.a,b=+w.dataset.b;v=(p-a)/(b-a||1)}
+        w.style.setProperty('--w',Math.max(0,Math.min(1,v)).toFixed(3))});
     }
     // beat pulse (demo tempo is known; for own songs use a gentle 2s breathe)
     const bt=song.id==='demo'?60/90:2,ph=(player.time()%bt)/bt,bi=Math.floor(player.time()/bt);
@@ -613,8 +617,15 @@ $('#back').onclick=()=>{$('#ytwrap').classList.add('hidden');$('#recs').classLis
 $('#bigger').onclick=()=>{fsScale=Math.min(1.6,+(fsScale+.1).toFixed(2));store.set('fs',fsScale);applyFs()};
 $('#smaller').onclick=()=>{fsScale=Math.max(.7,+(fsScale-.1).toFixed(2));store.set('fs',fsScale);applyFs()};
 $('#focusBtn').onclick=()=>{document.body.classList.toggle('focus');$('#focusBtn').classList.toggle('on');applyFs()};
-$('#sMinus').onclick=()=>{sync=+(sync-.5).toFixed(1);$('#sVal').textContent=sync.toFixed(1)+'с'};
-$('#sPlus').onclick=()=>{sync=+(sync+.5).toFixed(1);$('#sVal').textContent=sync.toFixed(1)+'с'};
+function showSync(){$('#sVal').textContent=(sync>0?'+':'')+sync.toFixed(2)+'с'}
+function setSync(v,msg){sync=Math.round(v*100)/100;showSync();if(song)store.set('sync:'+song.id,sync);cur=-2;if(msg)toast(msg)}
+$('#sMinus').onclick=()=>setSync(sync-.25);
+$('#sPlus').onclick=()=>setSync(sync+.25);
+// tap exactly when a line starts being sung — the closest line snaps to that moment
+$('#sTap').onclick=()=>{if(!song)return;const raw=player.time(),L=song.lines;let best=null;
+  L.forEach(l=>{const d=Math.abs(l.t-(raw+sync));if(d<4&&(!best||d<best.d))best={l,d}});
+  if(!best){toast('Натисни саме тоді, коли починається рядок');return}
+  setSync(best.l.t-raw,'⏱ Синхронізовано під рядок «'+best.l.en.slice(0,28)+'…»')};
 addEventListener('resize',()=>{if(song)center(cur,true)});
 document.addEventListener('keydown',e=>{if(e.code==='Space'&&player&&e.target.tagName!=='INPUT'&&e.target.tagName!=='TEXTAREA'){e.preventDefault();$('#playbtn').click()}});
 /* Apple-Music-style browsing: scroll the lyrics freely, tap a line to jump there */
@@ -714,13 +725,16 @@ async function findVideos(artist,track,dur){
   const key=store.get('ytkey','');
   if(key){try{const r=await getJSON(`https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&videoEmbeddable=true&maxResults=6&q=${encodeURIComponent(q)}&key=${key}`);
     out=r.items.map(i=>({id:i.id.videoId,title:i.snippet.title,len:0}))}catch(e){}}
-  if(!out.length)for(const h of PIPED){try{const r=await getJSON(`${h}/search?q=${encodeURIComponent(q)}&filter=videos`,6000);
-    out=(r.items||[]).filter(i=>i.url&&i.duration>0).slice(0,8).map(i=>({id:i.url.split('v=')[1],title:i.title,len:i.duration}));if(out.length)break}catch(e){}}
+  if(!out.length)for(const h of PIPED){try{
+    const [m,v]=await Promise.all([getJSON(`${h}/search?q=${encodeURIComponent(q)}&filter=music_songs`,6000).catch(()=>({items:[]})),getJSON(`${h}/search?q=${encodeURIComponent(q)}&filter=videos`,6000).catch(()=>({items:[]}))]);
+    const map=(i,studio)=>({id:i.url.split('v=')[1],title:i.title,len:i.duration,studio:studio||/ - Topic$/.test(i.uploaderName||'')});
+    out=[...(m.items||[]).filter(i=>i.url&&i.duration>0).slice(0,5).map(i=>map(i,true)),...(v.items||[]).filter(i=>i.url&&i.duration>0).slice(0,8).map(i=>map(i,false))];
+    if(out.length)break}catch(e){}}
   if(!out.length)for(const h of INV){try{const r=await getJSON(`${h}/api/v1/search?q=${encodeURIComponent(q)}&type=video`,6000);
     out=r.slice(0,8).map(i=>({id:i.videoId,title:i.title,len:i.lengthSeconds}));if(out.length)break}catch(e){}}
   // prefer the version whose length matches the lyrics timing; avoid live/cover/remix
-  const bad=/live|cover|remix|sped|slowed|karaoke|reaction|8d/i,good=/audio|lyric|official/i;
-  out.forEach(v=>{v.score=(v.len?Math.abs(v.len-dur):6)+(bad.test(v.title)?40:0)-(good.test(v.title)?2:0)});
+  const bad=/live|cover|remix|sped|slowed|karaoke|reaction|8d|instrumental/i,good=/audio|lyric/i,clip=/official (music )?video|music video|\(video\)|clip/i;
+  out.forEach(v=>{v.score=(v.len?Math.abs(v.len-dur)*1.5:6)+(bad.test(v.title)?40:0)-(good.test(v.title)?2:0)+(clip.test(v.title)?4:0)-(v.studio?8:0)});
   return out.sort((a,b)=>a.score-b.score);
 }
 let ytReady=null;
@@ -733,7 +747,10 @@ class YTPlayer{
   next(){this.k++;if(this.k<this.ids.length){setStatus('це відео не вбудовується — пробую інше…');this.p.loadVideoById(this.ids[this.k].id)}else this.onFail&&this.onFail()}
   get duration(){const d=this.ready&&this.p.getDuration?this.p.getDuration():0;return d>0?d:this.fallback}
   get playing(){return this.ready&&this.p.getPlayerState&&this.p.getPlayerState()===1}
-  time(){return this.ready&&this.p.getCurrentTime?this.p.getCurrentTime():0}
+  time(){if(!this.ready||!this.p.getCurrentTime)return 0;const raw=this.p.getCurrentTime(),now=performance.now();
+    if(this.playing){if(raw!==this._raw){this._raw=raw;this._at=now;this._base=raw}
+      const est=this._base+(now-this._at)/1000;return Math.abs(est-raw)<.6?est:raw}
+    this._raw=raw;this._base=raw;this._at=now;return raw}
   play(){if(this.ready)this.p.playVideo()}
   pause(){if(this.ready)this.p.pauseVideo()}
   seek(s){if(this.ready)this.p.seekTo(s,true)}
@@ -876,7 +893,10 @@ $('#recsClose').onclick=()=>{$('#recs').classList.add('hidden');$('#recBtn').cla
 function parseLRC(txt){
   const out=[];txt.split(/\r?\n/).forEach(row=>{const tags=[...row.matchAll(/\[(\d+):(\d+(?:[.:]\d+)?)\]/g)];if(!tags.length)return;
     const text=row.replace(/\[[^\]]*\]/g,'').trim();if(!text)return;
-    tags.forEach(m=>out.push({t:+m[1]*60+parseFloat(m[2].replace(':','.')),en:text}))});
+    let words=null;
+    if(/<\d+:\d+/.test(text)){words=[];text.replace(/<(\d+):(\d+(?:\.\d+)?)>\s*([^<]*)/g,(_,mm,ss,w)=>{w=w.trim();if(w)w.split(/\s+/).forEach(x=>words.push({w:x,t:+mm*60+parseFloat(ss)}))})}
+    const plain=text.replace(/<[^>]*>/g,'').replace(/\s+/g,' ').trim();if(!plain)return;
+    tags.forEach(m=>out.push({t:+m[1]*60+parseFloat(m[2].replace(':','.')),en:plain,words}))});
   return out.sort((a,b)=>a.t-b.t);
 }
 </script>
