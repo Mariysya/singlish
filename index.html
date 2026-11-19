@@ -184,6 +184,34 @@ img{display:block;max-width:100%;user-select:none;-webkit-user-drag:none}
 .gbtns{display:flex;gap:8px;flex-wrap:wrap}
 .gbtns button{padding:12px 16px;font:800 13px Unbounded;background:url(paper_yellow.jpg) center/cover;clip-path:polygon(0 6%,100% 0,97% 100%,3% 94%)}
 .gbtns button.alt{background-image:url(paper_cream.jpg)}
+#buddy{position:fixed;z-index:8;right:8px;bottom:118px;pointer-events:none}
+#mic{pointer-events:auto;width:66px;height:82px;display:block;animation:bob 2.6s ease-in-out infinite;filter:drop-shadow(2px 4px 0 rgba(10,2,30,.55));transition:transform .2s}
+#mic:active{transform:scale(.9)}
+#mic .pp{animation:blink 4.2s infinite;transform-box:fill-box;transform-origin:center}
+#mic .mouth{transform-box:fill-box;transform-origin:center}
+body.isplaying #mic .mouth{animation:sing .42s ease-in-out infinite alternate}
+@keyframes blink{0%,93%,100%{transform:scaleY(1)}96%{transform:scaleY(.1)}}
+@keyframes sing{from{transform:scaleY(.35)}to{transform:scaleY(1.15)}}
+@keyframes bob{0%,100%{translate:0 0}50%{translate:0 -4px}}
+#mic.hop{animation:hop .5s var(--ease)}
+@keyframes hop{30%{translate:0 -14px;rotate:-8deg}}
+#bubble{pointer-events:auto;position:absolute;right:6px;bottom:90px;width:min(330px,calc(100vw - 24px));max-height:min(56vh,460px);overflow:auto;padding:16px 16px 14px;color:var(--ink);background:var(--paper) url(card_cream.webp) center/100% 100%;
+  clip-path:polygon(0 2%,100% 0,99% 97%,2% 100%);filter:drop-shadow(0 6px 0 rgba(10,2,30,.5));animation:sheet .35s var(--ease);transform-origin:90% 100%}
+#bubble p{font:14px/1.45 'Special Elite',monospace;margin:0 0 10px}
+#bubble .bb{display:flex;flex-wrap:wrap;gap:7px}
+#bubble .bb button{padding:9px 11px;font:700 12px Unbounded;color:var(--ink);background:url(paper_yellow.jpg) center/cover;clip-path:polygon(0 5%,100% 0,97% 100%,2% 94%)}
+#bubble .bb button.v{background-image:url(paper_violet.jpg);color:var(--paper)}
+#bubble .bb button:active{transform:scale(.94)}
+#bubble .x{position:absolute;top:6px;right:8px;font:16px Unbounded;color:var(--ink);opacity:.5;padding:4px}
+#bubble .quiet{display:block;margin-top:10px;font:12px Onest;text-decoration:underline;color:var(--ink);opacity:.6}
+#bubble .pair{margin:0 0 9px;font:14px/1.35 Onest}#bubble .pair b{display:block;font-weight:700}#bubble .pair small{color:#5a22d6;font-size:13px}
+#bubble .cat{margin:4px 0 12px}#bubble .cat h4{font:800 11px Unbounded;letter-spacing:.06em;margin:0 0 6px;color:#5a22d6}
+#bubble .chips{display:flex;flex-wrap:wrap;gap:6px}
+#bubble .chips button{padding:6px 9px;font:600 13px Onest;color:var(--ink);background:rgba(123,60,255,.12);border:1px dashed rgba(90,34,214,.5)}
+#bubble .chips button.on{background:var(--acid);border-style:solid}
+#bubble .wcard{margin:2px 0 10px;padding:9px 10px;background:rgba(232,255,74,.45);font:13px/1.4 Onest}
+#bubble .wcard button{margin-top:6px;padding:6px 9px;font:700 11px Unbounded;background:var(--ink);color:var(--acid)}
+body.gaming #buddy,#player.hidden #buddy{display:none}
 body.gaming .tr{display:none}
 /* --- study mode --- */
 #study{position:relative;z-index:2;flex:1;overflow-y:auto;padding:10px 12px 20px;-webkit-overflow-scrolling:touch}
@@ -458,6 +486,7 @@ body.dragging{user-select:none}
       <button data-l="pro"><b>Профі</b><small>без варіантів — друкуєш сама</small></button></div>
     <button class="gcancel" id="gCancel">повернутися до співу</button></div></div>
   <div id="gres" class="hidden"></div>
+  <div id="buddy"><div id="bubble" class="hidden"></div><button id="mic" aria-label="Помічник"><svg viewBox="0 0 66 82" width="66" height="82" aria-hidden="true"><g transform="rotate(-7 33 44)"><circle cx="33" cy="30" r="22" fill="#fff" stroke="#fff" stroke-width="9"/><path d="M24 52 L42 52 L38 77 Q33 80 28 77 Z" fill="#fff" stroke="#fff" stroke-width="9" stroke-linejoin="round"/><path d="M24 52 L42 52 L38 77 Q33 80 28 77 Z" fill="#e8ff4a" stroke="#120a1f" stroke-width="1.6"/><circle cx="33" cy="30" r="22" fill="#7b3cff" stroke="#120a1f" stroke-width="1.6"/><path d="M17 30 Q17 17 27 13" fill="none" stroke="#a989ff" stroke-width="2.6" stroke-linecap="round"/><circle cx="25" cy="29" r="7.5" fill="#fff" stroke="#120a1f" stroke-width="1.4"/><circle cx="41" cy="26" r="4.8" fill="#fff" stroke="#120a1f" stroke-width="1.4"/><g class="pp"><circle cx="26.2" cy="30.6" r="3" fill="#120a1f"/><circle cx="41.6" cy="27.2" r="2.1" fill="#120a1f"/></g><ellipse class="mouth" cx="34.5" cy="41" rx="3.6" ry="4.6" fill="#120a1f"/><rect x="18" y="2" width="32" height="9" fill="#e8ff4a" opacity=".88" transform="rotate(9 34 6)"/></g></svg></button></div>
   <div id="recs" class="hidden"><div class="rhead"><b>ЩО ПОСЛУХАТИ ДАЛІ</b><button id="recsClose" aria-label="Закрити">✕</button></div><div class="rrow" id="recRow"></div></div>
   <div class="bottombar">
     <div id="seekwrap"><input type="range" id="seek" min="0" max="1000" value="0" aria-label="Перемотування"></div>
@@ -746,6 +775,7 @@ function loop(){
     const bt=song.id==='demo'?60/90:2,ph=(player.time()%bt)/bt,bi=Math.floor(player.time()/bt);
     document.body.style.setProperty('--beat',player.playing?Math.pow(1-ph,3).toFixed(3):0);
     if(player.playing&&bi!==lastBeat){lastBeat=bi;if(playerPaint&&bi%2===0)playerPaint.burst(.6)}
+    document.body.classList.toggle('isplaying',!!player.playing);
     $('#cur').textContent=fmt(player.time());
     if(!seeking)$('#seek').value=Math.round(player.time()/(player.duration||1)*1000);
     raf=requestAnimationFrame(step)};step();
@@ -761,7 +791,7 @@ $('#rew').onclick=()=>{if(player){player.seek(Math.max(0,player.time()-10));cur=
 $('#ffw').onclick=()=>{if(player){player.seek(Math.min(player.duration-1,player.time()+10));cur=-2}};
 $('#seek').addEventListener('input',()=>{seeking=true;$('#cur').textContent=fmt($('#seek').value/1000*player.duration)});
 $('#seek').addEventListener('change',()=>{player.seek($('#seek').value/1000*player.duration);seeking=false});
-$('#back').onclick=()=>{if(game)quitGame(true);$('#more').classList.add('hidden');$('#ytwrap').classList.add('hidden');$('#recs').classList.add('hidden');endBrowse();player.destroy();song=null;player=null;cancelAnimationFrame(raf);if(playerPaint)playerPaint.stop();
+$('#back').onclick=()=>{closeBubble();if(game)quitGame(true);$('#more').classList.add('hidden');$('#ytwrap').classList.add('hidden');$('#recs').classList.add('hidden');endBrowse();player.destroy();song=null;player=null;cancelAnimationFrame(raf);if(playerPaint)playerPaint.stop();
   document.body.style.setProperty('--beat',0);$('#player').classList.add('hidden');$('#home').classList.remove('hidden');homePaint.resize();homePaint.start()};
 $('#bigger').onclick=()=>{fsScale=Math.min(1.6,+(fsScale+.1).toFixed(2));store.set('fs',fsScale);applyFs()};
 $('#smaller').onclick=()=>{fsScale=Math.max(.7,+(fsScale-.1).toFixed(2));store.set('fs',fsScale);applyFs()};
@@ -915,6 +945,50 @@ async function wordTr(w){if(wordCache[w])return wordCache[w];
     if(r[1])t=r[1].slice(0,2).map(p=>p[1].slice(0,3).join(', ')).join('; ');return wordCache[w]=t}catch(e){return ''}}
 
 
+
+/* --- helper: the sticker microphone --- */
+const CATS=[
+ ['СЛЕНГ І РОЗМОВНЕ',/^(gonna|wanna|gotta|ain'?t|ya|y'?all|'?cause|cuz|tryna|lemme|gimme|kinda|sorta|imma|dunno|outta|'?til|c'?mon|babe|baby|whatcha|nah|yo|bro|lil|em|\w+in'?)$/i,w=>/in'$/.test(w)||/^(gonna|wanna|gotta|ain'?t|ya|y'?all|'?cause|cuz|tryna|lemme|gimme|kinda|sorta|imma|dunno|outta|'?til|c'?mon|babe|baby|whatcha|nah|yo|bro|lil|'?em)$/i.test(w)],
+ ['КОХАННЯ',/^(love|loving|lover|loved|heart|hearts|kiss|kissed|kisses|darling|honey|hold|touch|mine|yours|forever|together|miss|want|need|crush|date|sweet|sweetheart|beautiful|pretty|marry|ring|lips|arms|embrace|desire|romance)$/],
+ ['ЕМОЦІЇ',/^(feel|feeling|feelings|cry|crying|cried|tears|happy|sad|sadness|scared|afraid|lonely|alone|hurt|hurts|pain|smile|laugh|mad|crazy|angry|fear|sorry|broken|hope|lost|blue|tired|nervous|jealous|proud|ashamed|bored|excited|alive|numb|empty|free|wild|anxious|regret|heartbreak|shame|guilty)$/],
+ ['НІЧ І ТУСОВКА',/^(night|tonight|party|dance|dancing|club|drink|drunk|lights|music|song|sing|loud|dj|floor|move|shake|beat|weekend|summer|fun|high|rhythm|groove|vibe|vibes)$/]];
+let bubbleT=null;
+function hop(){const m=$('#mic');m.classList.remove('hop');void m.offsetWidth;m.classList.add('hop')}
+function bsay(html,keep){const b=$('#bubble');b.innerHTML='<button class="x" aria-label="Закрити">✕</button>'+html;b.classList.remove('hidden');hop();
+  b.querySelector('.x').onclick=closeBubble;clearTimeout(bubbleT);if(!keep)bubbleT=setTimeout(closeBubble,12000);return b}
+function closeBubble(){clearTimeout(bubbleT);$('#bubble').classList.add('hidden')}
+function btns(list){return '<div class="bb">'+list.map(([k,t,v])=>`<button data-k="${k}"${v?' class="v"':''}>${t}</button>`).join('')+'</div>'}
+function wire(b,map){b.querySelectorAll('.bb button').forEach(x=>x.onclick=()=>{clearTimeout(bubbleT);map[x.dataset.k]&&map[x.dataset.k]()})}
+function askHow(first){
+  const b=bsay(`<p>${first?'Привіт! ':''}Як слухаємо цю пісню?</p>`+btns([['sing','🎤 Співати'],['study','🔍 Розбирати'],['game','🧩 Грати']])+(first?'<button class="quiet">не питай щоразу</button>':''),true);
+  wire(b,{sing:()=>{showModeSafe('sing');bsay('<p>Тоді співаємо! Натисни ▶. Якщо щось не розчуєш — тапни мене.</p>')},
+    study:()=>{closeBubble();showModeSafe('study')},
+    game:()=>{closeBubble();$('#modes [data-m="game"]').click()}});
+  const q=b.querySelector('.quiet');if(q)q.onclick=()=>{store.set('buddyQuiet',1);bsay('<p>Добре, більше не питатиму. Я тут, у куточку 👋</p>')}}
+function showModeSafe(m){if(game)quitGame(true);if(mode!==m)showMode(m)}
+function nowLine(){return Math.max(0,cur>=0?cur:(song.lines.findIndex(l=>l.t>player.time())-1))}
+function verseOf(i){const L=song.lines;let a=i,b=i;while(a>0&&L[a].t-L[a-1].t<5&&i-a<5)a--;while(b+1<L.length&&L[b+1].t-L[b].t<5&&b-a<7)b++;return [a,b]}
+function menu(){
+  const b=bsay('<p>Чим допомогти?</p>'+btns([['line','▶ повтори рядок'],['verse','📜 зіграй куплет'],['about','🤔 про що пісня?'],['words','🗂 слова з пісні'],['how','🎛 як слухаємо']]),true);
+  wire(b,{line:()=>{const i=nowLine();playLine(i,false);bsay(`<p>Слухай уважно 👂</p><div class="pair"><b>${esc(song.lines[i].en)}</b><small>${esc((song.lines[i].tr||{}).uk||'')}</small></div>`+btns([['again','↺ ще раз'],['slow','🐢 повільніше']]),true);
+      wire($('#bubble'),{again:()=>playLine(i,false),slow:()=>{setRate(.75);playLine(i,false);setTimeout(()=>{if(!lineTimer)setRate(1)},(song.lines[Math.min(i+1,song.lines.length-1)].t-song.lines[i].t+3)*1400)}})},
+    verse:()=>{const [a,z]=verseOf(nowLine());playLine(a,false,z);showPairs(a,z,'Граю куплет 🎶');},
+    about:()=>{const w=bsay('<p>Скажи чесно: ти зрозуміла, про що ця пісня?</p>'+btns([['yes','так, все ясно!'],['half','частково'],['no','не дуже',1]]),true);
+      wire(w,{yes:()=>bsay('<p>Супер! 🔥 Тоді перевір себе — зіграй у гру з пропусками.</p>'+btns([['g','🧩 грати']]),true)&&wire($('#bubble'),{g:()=>{closeBubble();$('#modes [data-m="game"]').click()}}),
+        half:()=>{const [a,z]=verseOf(nowLine());showPairs(a,z,'Розберімо цей куплет разом:')},
+        no:()=>{const [a,z]=verseOf(nowLine());showPairs(a,z,'Ось цей куплет з перекладом. Скоро я вмітиму пояснювати всю пісню своїми словами ✨')}})},
+    words:showWords,how:()=>askHow(false)})}
+function showPairs(a,z,head){bsay(`<p>${head}</p>`+song.lines.slice(a,z+1).map(l=>`<div class="pair"><b>${esc(l.en)}</b><small>${esc((l.tr||{}).uk||'…')}</small></div>`).join(''),true)}
+function songWords(){const seen=new Map();song.lines.forEach((l,li)=>l.en.split(/\s+/).forEach(w=>{const c=w.replace(/^[^A-Za-z']+|[^A-Za-z']+$/g,'').replace(/’/g,"'");const k=c.toLowerCase();if(k.length>1&&!seen.has(k))seen.set(k,{w:c,li})}));return seen}
+function showWords(){
+  const W=songWords(),groups=CATS.map(([name,re,test])=>[name,[...W.entries()].filter(([k])=>test?test(k):re.test(k)).map(([k,v])=>v)]).filter(g=>g[1].length);
+  if(!groups.length){bsay('<p>У цій пісні я не знайшов сленгу чи слів про кохання й емоції. Спробуй режим «Розбір» 🔍</p>');return}
+  const b=bsay('<p>Я розклав слова з пісні по поличках. Тапни слово:</p><div id="wcard"></div>'+groups.map(([n,ws])=>`<div class="cat"><h4>${n} · ${ws.length}</h4><div class="chips">${ws.slice(0,24).map(o=>`<button data-li="${o.li}">${esc(o.w)}</button>`).join('')}</div></div>`).join(''),true);
+  b.querySelectorAll('.chips button').forEach(x=>x.onclick=async()=>{b.querySelectorAll('.chips button').forEach(y=>y.classList.toggle('on',y===x));
+    const w=x.textContent,line=song.lines[+x.dataset.li],ph=findPhrases(w)[0],C=$('#wcard');C.className='wcard';C.innerHTML=`<b>${esc(w)}</b> — <span>${ph?esc(ph.m):'…'}</span><br><i>${esc(line.en)}</i>`;
+    if(!ph){const m=await wordTr(norm(w)||w.toLowerCase());if(C.isConnected&&x.classList.contains('on'))C.querySelector('span').textContent=m||'—'}
+    const add=document.createElement('button');add.textContent='＋ у словник';add.onclick=()=>addToDict({phrase:w.toLowerCase(),mean:C.querySelector('span').textContent.replace(/^…$/,''),line:line.en,tr:(line.tr||{}).uk||''});C.appendChild(document.createElement('br'));C.appendChild(add)})}
+$('#mic').onclick=()=>{if(!song)return;if(!$('#bubble').classList.contains('hidden'))closeBubble();else menu()};
 /* --- word-level timings from NetEase (via our Cloudflare Worker) --- */
 const API='https://singlish.semenovaaaa70.workers.dev';
 const nw=w=>w.toLowerCase().replace(/[’']/g,'').replace(/[^a-z0-9]/g,'');
@@ -976,6 +1050,7 @@ async function playTrack(x,cover){
   }
   const p=new YTPlayer(vids,x.duration,()=>setStatus('YouTube не дає вбудувати цю пісню 😿 Встав інше посилання через ⚙'));
   openSong(s,p);attachWordTimes(x,s);setStatus('завантажую відео…');
+  closeBubble();if(!store.get('buddyQuiet',0))setTimeout(()=>{if(song===s&&!player.playing&&!game)askHow(true)},1400);
   await p.init();$('#dur').textContent=fmt(p.duration);setStatus('');toast('Натисни ▶ — і співай!');
   // translation in background
   const key='tr2:'+x.id;let tr=store.get(key,null);
@@ -1215,8 +1290,8 @@ let lineTimer=null,lineRange=null;
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 async function waitPlaying(ms){const t0=Date.now();while(Date.now()-t0<ms){if(player.p&&player.p.getPlayerState&&player.p.getPlayerState()===1)return true;await sleep(60)}return false}
 function stopLineTimer(){clearInterval(lineTimer);lineTimer=null;lineRange=null}
-async function playLine(i,loop){
-  const L=song.lines,st=Math.max(0,L[i].t-.35),en=(i+1<L.length?L[i+1].t:L[i].t+5)+.12;
+async function playLine(i,loop,j){if(j==null)j=i;
+  const L=song.lines,st=Math.max(0,L[i].t-.35),en=(j+1<L.length?L[j+1].t:L[j].t+5)+.12;
   stopLineTimer();loopLine=loop?i:null;const P=player.p;
   try{P.mute()}catch(e){}
   if(!player.playing){player.play();await waitPlaying(3000)}
