@@ -975,12 +975,27 @@ function menu(){
     verse:()=>{const [a,z]=verseOf(nowLine());playLine(a,false,z);showPairs(a,z,'Граю куплет 🎶');},
     about:()=>{const w=bsay('<p>Скажи чесно: ти зрозуміла, про що ця пісня?</p>'+btns([['yes','так, все ясно!'],['half','частково'],['no','не дуже',1]]),true);
       wire(w,{yes:()=>bsay('<p>Супер! 🔥 Тоді перевір себе — зіграй у гру з пропусками.</p>'+btns([['g','🧩 грати']]),true)&&wire($('#bubble'),{g:()=>{closeBubble();$('#modes [data-m="game"]').click()}}),
-        half:()=>{const [a,z]=verseOf(nowLine());showPairs(a,z,'Розберімо цей куплет разом:')},
-        no:()=>{const [a,z]=verseOf(nowLine());showPairs(a,z,'Ось цей куплет з перекладом. Скоро я вмітиму пояснювати всю пісню своїми словами ✨')}})},
+        half:explainSong,no:explainSong})},
     words:showWords,how:()=>askHow(false)})}
+async function aiCall(task,lines,title){const r=await fetch(API+'/ai',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({task,lines,title})});const d=await r.json();if(!r.ok||d.error)throw new Error(d.error||r.status);return d}
+const songTitle=()=>song.artist+' — '+song.title,uniqLines=()=>[...new Set(song.lines.map(l=>l.en))];
+async function explainSong(){const s0=song,k='ex1:'+(song.meta?song.meta.id:song.id);let d=store.get(k,null);
+  if(!d){bsay('<p>Хвилинку, слухаю пісню уважно… 🎧</p>',true);try{d=await aiCall('explain',uniqLines(),songTitle());store.set(k,d)}catch(e){if(song===s0){const [a,z]=verseOf(nowLine());showPairs(a,z,'Не вдалося дістатися до мого мозку 😵 Ось хоча б куплет з перекладом:')}return}}
+  if(song!==s0)return;
+  const b=bsay(`<p><b>Про що:</b> ${esc(d.about||'')}</p>${d.mood?`<p><b>Настрій:</b> ${esc(d.mood)}</p>`:''}${(d.phrases||[]).length?'<p><b>Цікаві вирази:</b></p>':''}`+(d.phrases||[]).map((x,i)=>`<div class="pair"><b>${esc(x.en||'')}</b><small>${esc(x.uk||'')}${x.note?' — '+esc(x.note):''}</small><div class="bb" style="margin-top:4px"><button data-k="p${i}">＋ у словник</button></div></div>`).join('')+btns([['g','🧩 перевірити себе в грі']]),true);
+  const map={g:()=>{closeBubble();$('#modes [data-m="game"]').click()}};(d.phrases||[]).forEach((x,i)=>map['p'+i]=()=>{const l=song.lines.find(l=>l.en.toLowerCase().includes(String(x.en).toLowerCase()));addToDict({phrase:x.en,mean:x.uk+(x.note?' — '+x.note:''),line:l?l.en:'',tr:l&&l.tr?l.tr.uk:''})});wire(b,map)}
 function showPairs(a,z,head){bsay(`<p>${head}</p>`+song.lines.slice(a,z+1).map(l=>`<div class="pair"><b>${esc(l.en)}</b><small>${esc((l.tr||{}).uk||'…')}</small></div>`).join(''),true)}
 function songWords(){const seen=new Map();song.lines.forEach((l,li)=>l.en.split(/\s+/).forEach(w=>{const c=w.replace(/^[^A-Za-z']+|[^A-Za-z']+$/g,'').replace(/’/g,"'");const k=c.toLowerCase();if(k.length>1&&!seen.has(k))seen.set(k,{w:c,li})}));return seen}
-function showWords(){
+async function showWords(){
+  const s0=song,k='wd1:'+(song.meta?song.meta.id:song.id);let g=store.get(k,null);
+  if(!g){bsay('<p>Розкладаю слова по поличках… 🗂</p>',true);try{g=await aiCall('words',uniqLines(),songTitle());if(!Array.isArray(g))throw 0;store.set(k,g)}catch(e){g=null}}
+  if(song!==s0)return;if(!g||!g.length)return showWordsLocal();
+  const W=songWords(),find=w=>{const o=W.get(String(w).toLowerCase().replace(/’/g,"'"));return o?o.li:song.lines.findIndex(l=>l.en.toLowerCase().includes(String(w).toLowerCase()))};
+  const b=bsay('<p>Я розклав слова з пісні по поличках. Тапни слово:</p><div id="wcard"></div>'+g.filter(c=>c.words&&c.words.length).map(c=>`<div class="cat"><h4>${esc(String(c.cat).toUpperCase())} · ${c.words.length}</h4><div class="chips">${c.words.slice(0,24).map(o=>`<button data-li="${Math.max(0,find(o.w))}" data-uk="${esc(String(o.uk||''))}">${esc(String(o.w))}</button>`).join('')}</div></div>`).join(''),true);
+  b.querySelectorAll('.chips button').forEach(x=>x.onclick=()=>{b.querySelectorAll('.chips button').forEach(y=>y.classList.toggle('on',y===x));
+    const w=x.textContent,line=song.lines[+x.dataset.li],C=$('#wcard');C.className='wcard';C.innerHTML=`<b>${esc(w)}</b> — <span>${esc(x.dataset.uk)}</span><br><i>${esc(line.en)}</i><br>`;
+    const add=document.createElement('button');add.textContent='＋ у словник';add.onclick=()=>addToDict({phrase:w.toLowerCase(),mean:x.dataset.uk,line:line.en,tr:(line.tr||{}).uk||''});C.appendChild(add)})}
+function showWordsLocal(){
   const W=songWords(),groups=CATS.map(([name,re,test])=>[name,[...W.entries()].filter(([k])=>test?test(k):re.test(k)).map(([k,v])=>v)]).filter(g=>g[1].length);
   if(!groups.length){bsay('<p>У цій пісні я не знайшов сленгу чи слів про кохання й емоції. Спробуй режим «Розбір» 🔍</p>');return}
   const b=bsay('<p>Я розклав слова з пісні по поличках. Тапни слово:</p><div id="wcard"></div>'+groups.map(([n,ws])=>`<div class="cat"><h4>${n} · ${ws.length}</h4><div class="chips">${ws.slice(0,24).map(o=>`<button data-li="${o.li}">${esc(o.w)}</button>`).join('')}</div></div>`).join(''),true);
@@ -1053,8 +1068,11 @@ async function playTrack(x,cover){
   closeBubble();if(!store.get('buddyQuiet',0))setTimeout(()=>{if(song===s&&!player.playing&&!game)askHow(true)},1400);
   await p.init();$('#dur').textContent=fmt(p.duration);setStatus('');toast('Натисни ▶ — і співай!');
   // translation in background
-  const key='tr2:'+x.id;let tr=store.get(key,null);
-  if(!tr){setStatus('перекладаю українською…');try{tr=await translateLines(lines.map(l=>l.en));store.set(key,tr)}catch(e){tr=[]}setStatus('')}
+  const key='tr3:'+x.id;let tr=store.get(key,null);
+  if(!tr){setStatus('перекладаю українською…');
+    try{const r=await aiCall('translate',lines.map(l=>l.en),x.artistName+' — '+x.trackName);if(Array.isArray(r)&&r.length===lines.length)tr=r.map(String)}catch(e){}
+    if(!tr){tr=store.get('tr2:'+x.id,null);if(!tr)try{tr=await translateLines(lines.map(l=>l.en))}catch(e){tr=[]}}
+    else store.set(key,tr);setStatus('')}
   if(song===s){lines.forEach((l,i)=>l.tr={uk:tr[i]||''});setLang(lang)}
 }
 function ytId(u){const m=String(u).match(/(?:v=|youtu\.be\/|shorts\/|embed\/)([\w-]{11})/);return m?m[1]:(/^[\w-]{11}$/.test(u)?u:null)}
