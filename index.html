@@ -193,7 +193,7 @@ body.focus .topbar .hide-focus{display:none}
 .chips button:nth-child(3n){background-image:url(paper_yellow.jpg)}
 .chips button:hover{transform:rotate(-2deg) scale(1.05)}
 #status{position:relative;z-index:3;min-height:0;text-align:center;font:13px 'Special Elite',monospace;color:var(--acid);padding:0 16px}
-#ytwrap{position:fixed;z-index:6;left:var(--yx,calc(100vw - 230px));top:var(--yy,calc(100dvh - 300px));width:var(--yw,210px);aspect-ratio:16/9;padding:5px;
+#ytwrap{position:fixed;z-index:6;left:var(--yx,calc(100vw - min(44vw,210px) - 14px));top:var(--yy,calc(100dvh - 250px));width:var(--yw,min(44vw,210px));height:calc(var(--yw,min(44vw,210px)) * 9 / 16 + 10px);padding:5px;
   background:url(paper_cream.jpg) center/cover;filter:drop-shadow(4px 6px 6px rgba(0,0,0,.55));transform:rotate(1.5deg);transition:transform .3s var(--ease)}
 #ytwrap.drag{transform:rotate(0) scale(1.02)}
 #ytwrap.mini{opacity:.0001;pointer-events:none}
@@ -224,8 +224,28 @@ body.dragging{user-select:none}
 .rmsg{font:13px 'Special Elite',monospace;color:var(--lilac);padding:6px}
 #favBtn.on{background-image:url(paper_yellow.jpg);color:#c4002f;opacity:1}
 .chips .fav{background-image:url(paper_yellow.jpg)!important}
+#sugg{position:absolute;left:10px;right:10px;top:calc(100% - 6px);z-index:10;background:url(paper_cream.jpg) center/cover;padding:6px;
+  box-shadow:6px 8px 0 rgba(18,10,31,.55);clip-path:polygon(0 0,100% 0,99% 100%,1% 98%)}
+.sg{display:flex;gap:10px;align-items:center;width:100%;text-align:left;padding:7px 8px;color:var(--ink);font:500 14px Onest}
+.sg:hover,.sg.sel{background:rgba(232,255,74,.75)}
+.sg img{width:38px;height:38px;object-fit:cover;flex:none}
+.sg .art{width:38px;height:38px;border-radius:50%;object-fit:cover}
+.sg b{font:700 14px Onest;display:block}.sg small{opacity:.65;font-size:12px}
+.tabs{display:flex;gap:8px;margin-top:22px;flex-wrap:wrap}
+.tabs button{padding:10px 14px;font:700 12px Unbounded;color:var(--ink);background:url(paper_cream.jpg) center/cover;clip-path:polygon(0 6%,100% 0,97% 100%,3% 94%);opacity:.8;transition:transform .2s var(--ease)}
+.tabs button.on{background-image:url(paper_yellow.jpg);opacity:1;transform:rotate(-2deg) scale(1.05)}
+#tablist{display:grid;gap:8px;margin-top:14px}
+.row{position:relative;display:flex;gap:12px;align-items:center;width:100%;text-align:left;padding:8px 10px;background:rgba(243,236,220,.07);border:1px dashed rgba(205,188,255,.25);color:var(--paper);
+  animation:drop .5s var(--ease) both;animation-delay:var(--d,0s);transition:background .2s}
+.row:hover{background:rgba(232,255,74,.12)}
+.row .n{flex:none;width:26px;font:800 15px Unbounded;color:var(--acid);text-align:center}
+.row img{flex:none;width:48px;height:48px;object-fit:cover;padding:3px;background:url(paper_cream.jpg) center/cover}
+.row b{display:block;font:700 14px Onest;line-height:1.25}.row small{font:13px Onest;color:var(--lilac)}
+.row .x{margin-left:auto;flex:none;color:var(--lilac);font-size:16px;padding:6px}
+.empty{font:14px 'Special Elite',monospace;color:var(--lilac);padding:10px 4px}
 @media (prefers-reduced-motion:reduce)
-#yt,#ytwrap iframe{width:100%;height:100%;display:block}
+#yt,#ytwrap iframe{position:absolute;left:5px;top:5px;width:calc(100% - 10px)!important;height:calc(100% - 10px)!important;display:block}
+.ytcover{position:absolute;inset:0;z-index:2;touch-action:none;cursor:grab}
 #ytsize{position:absolute;left:-10px;top:-12px;padding:4px 8px;font-size:12px}
 @media (prefers-reduced-motion:reduce){*{animation-duration:.01s!important;animation-iteration-count:1!important}}
 </style>
@@ -264,36 +284,14 @@ body.dragging{user-select:none}
   <div class="wrap">
     <section class="sec reveal" style="--rr:2deg">
       <img class="sec-h" src="h_search.webp" alt="знайди пісню">
-      <div class="paperbox"><form class="searchbox" id="search"><input placeholder="Виконавець — назва" aria-label="Пошук пісні"><button>ШУКАТИ</button></form></div>
+      <div class="paperbox" style="z-index:9"><form class="searchbox" id="search" autocomplete="off"><input placeholder="Виконавець або назва пісні" aria-label="Пошук пісні" autocomplete="off"><button>ШУКАТИ</button></form>
+        <div id="sugg" class="hidden"></div></div>
       <div id="results"></div>
-      <div id="favs" class="chips"></div>
-      <div id="recent" class="chips"></div>
-      <div class="chips" id="ideas"></div>
+      <div class="tabs" id="tabs"><button data-t="top" class="on">🔥 Популярні</button><button data-t="fav">♥ Обране</button><button data-t="recent">🕘 Нещодавні</button></div>
+      <div id="tablist"></div>
     </section>
 
-    <section class="sec reveal" style="--rr:-3deg">
-      <img class="sec-h" src="h_demo.webp" alt="демо">
-      <button class="ticket paperbox" id="demoBtn">
-        <img class="tape t1" src="tape4.webp" alt=""><img class="tape t2" src="tape2.webp" alt="">
-        <span class="stamp">DEMO</span>
-        <span class="play"><svg viewBox="0 0 20 20"><path d="M3 1l15 9-15 9z"/></svg></span>
-        <span class="title"><img src="t_paperstars.webp" alt="Paper Stars"><p>Singlish Demo · 1:10 · переклад українською</p></span>
-      </button>
-    </section>
 
-    <section class="sec reveal" style="--rr:3deg">
-      <img class="sec-h" src="h_own.webp" alt="своя пісня">
-      <div class="own">
-        <img class="deco-star" src="star_yellow.webp" alt="">
-        <label>1 · АУДІОФАЙЛ (mp3, m4a…)</label>
-        <input type="file" id="ownAudio" accept="audio/*">
-        <label>2 · ТЕКСТ ІЗ ТАЙМІНГОМ (LRC)</label>
-        <textarea id="ownLrc" placeholder="[00:12.30] First line of the song&#10;[00:16.80] Second line…"></textarea>
-        <label>3 · ПЕРЕКЛАД ПОРЯДКОВО (необов’язково)</label>
-        <textarea id="ownTr" placeholder="Перший рядок перекладу&#10;Другий рядок…"></textarea>
-        <button class="btn" id="ownGo">ПОГНАЛИ →</button>
-      </div>
-    </section>
   </div>
 </main>
 
@@ -318,7 +316,7 @@ body.dragging{user-select:none}
   </div>
   <div id="status"></div>
   <div id="stage"><ul id="lyrics"></ul></div>
-  <div id="ytwrap" class="hidden"><div class="ythandle" id="ythandle">⠿ тягни</div><div id="yt"></div><div class="ygrip" id="ygrip"></div></div>
+  <div id="ytwrap" class="hidden"><div class="ythandle" id="ythandle">⠿ тягни · 🤏 зум</div><div id="yt"></div><div class="ytcover" id="ytcover"></div><div class="ygrip" id="ygrip"></div></div>
   <button id="backNow" class="hidden">⤓ до поточного рядка</button>
   <div id="recs" class="hidden"><div class="rhead"><b>ЩО ПОСЛУХАТИ ДАЛІ</b><button id="recsClose" aria-label="Закрити">✕</button></div><div class="rrow" id="recRow"></div></div>
   <div class="bottombar">
@@ -666,16 +664,47 @@ function renderResults(list){
       (x.syncedLyrics?'<span class="tagl">⏱ караоке</span>':x.instrumental?'<span class="tagl no">без слів</span>':'<span class="tagl no">лише текст</span>');
     b.onclick=()=>playTrack(x);R.appendChild(b)});
 }
-$('#search').onsubmit=async e=>{e.preventDefault();const q=$('#search input').value.trim();if(!q)return;
+/* search suggestions as you type */
+let sgT=null,sgN=0,sgSel=-1;
+const sgBox=$('#sugg'),sgIn=$('#search input');
+function hideSugg(){sgBox.classList.add('hidden');sgSel=-1}
+sgIn.addEventListener('input',()=>{clearTimeout(sgT);const q=sgIn.value.trim();if(q.length<2){hideSugg();return}
+  sgT=setTimeout(async()=>{const n=++sgN;
+    try{const [ar,tr]=await Promise.all([jsonp(`${DZ}/search/artist?q=${encodeURIComponent(q)}&limit=2`),jsonp(`${DZ}/search?q=${encodeURIComponent(q)}&limit=6`)]);
+      if(n!==sgN)return;const items=[];
+      (ar.data||[]).forEach(a=>items.push({kind:'artist',label:a.name,img:a.picture_small,go:()=>{sgIn.value=a.name;hideSugg();$('#search').requestSubmit()}}));
+      (tr.data||[]).forEach(t=>items.push({kind:'track',label:t.title_short||t.title,sub:t.artist.name,img:t.album&&t.album.cover_small,go:()=>{hideSugg();sgIn.value=`${t.artist.name} — ${t.title_short||t.title}`;playRec({artist:t.artist.name,track:t.title_short||t.title,cover:t.album&&t.album.cover_medium})}}));
+      if(!items.length){hideSugg();return}
+      sgBox.innerHTML='';items.forEach((it,i)=>{const b=document.createElement('button');b.type='button';b.className='sg';
+        b.innerHTML=(it.img?`<img class="${it.kind==='artist'?'art':''}" src="${it.img}" alt="">`:'')+`<span><b>${esc(it.label)}</b><small>${it.kind==='artist'?'виконавець':esc(it.sub)}</small></span>`;
+        b.onmousedown=e=>e.preventDefault();b.onclick=it.go;sgBox.appendChild(b)});sgBox.classList.remove('hidden');sgSel=-1}catch(e){hideSugg()}},250)});
+sgIn.addEventListener('keydown',e=>{const bs=[...sgBox.querySelectorAll('.sg')];if(sgBox.classList.contains('hidden')||!bs.length)return;
+  if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();sgSel=(sgSel+(e.key==='ArrowDown'?1:-1)+bs.length)%bs.length;bs.forEach((b,i)=>b.classList.toggle('sel',i===sgSel))}
+  else if(e.key==='Enter'&&sgSel>=0){e.preventDefault();bs[sgSel].click()}else if(e.key==='Escape')hideSugg()});
+sgIn.addEventListener('blur',()=>setTimeout(hideSugg,150));
+$('#search').onsubmit=async e=>{e.preventDefault();hideSugg();const q=$('#search input').value.trim();if(!q)return;
   $('#results').innerHTML='<div class="msg">шукаю…</div>';
   try{renderResults(await searchSongs(q))}catch(err){$('#results').innerHTML='<div class="msg">Не вдалося зв’язатися з базою текстів. Перевір інтернет і спробуй ще.</div>'}};
 const IDEAS=['Billie Eilish — Birds of a Feather','Imagine Dragons — Believer','Arctic Monkeys — Do I Wanna Know?','Olivia Rodrigo — good 4 u','The Weeknd — Blinding Lights','Lana Del Rey — Summertime Sadness','Nirvana — Smells Like Teen Spirit','Dua Lipa — Levitating'];
 function chips(el,label,items){el.innerHTML=items.length?`<span class="lab">${label}</span>`:'';items.forEach(q=>{const b=document.createElement('button');b.textContent=q;b.onclick=()=>{$('#search input').value=q;$('#search').requestSubmit()};el.appendChild(b)})}
-function refreshChips(){
-  const F=$('#favs'),fl=store.get('favs',[]);F.innerHTML=fl.length?'<span class="lab">♥ ОБРАНЕ</span>':'';
-  fl.forEach(f=>{const b=document.createElement('button');b.className='fav';b.textContent='♥ '+f.artist+' — '+f.track;b.onclick=()=>openById(f.id,f.track);F.appendChild(b)});
-  chips($('#recent'),'НЕЩОДАВНО',store.get('recent',[]).slice(0,6));chips($('#ideas'),'СПРОБУЙ',IDEAS)}
-refreshChips();
+let tab=store.get('tab','top'),chart=null;
+function row(i,o){const b=document.createElement('button');b.className='row';b.style.setProperty('--d',Math.min(i,12)*.03+'s');
+  b.innerHTML=(o.n?`<span class="n">${o.n}</span>`:'')+(o.cover?`<img src="${o.cover}" alt="" loading="lazy">`:'')+`<span style="min-width:0"><b>${esc(o.track)}</b><small>${esc(o.artist)}</small></span>`+(o.remove?'<span class="x" title="Прибрати">✕</span>':'');
+  b.onclick=e=>{if(e.target.classList.contains('x')){o.remove();return}o.go()};return b}
+async function loadChart(){if(chart)return chart;
+  try{const d=await jsonp(`${DZ}/chart/0/tracks?limit=50`);chart=(d.data||[]).map(t=>({artist:t.artist.name,track:t.title_short||t.title,cover:t.album&&t.album.cover_medium}))}catch(e){chart=null}
+  if(!chart||!chart.length)chart=IDEAS.map(q=>{const [a,t]=q.split(' — ');return {artist:a,track:t}});return chart}
+async function refreshChips(){
+  document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===tab));
+  const L=$('#tablist');
+  if(tab==='fav'){const fl=store.get('favs',[]);L.innerHTML=fl.length?'':'<div class="empty">Тут поки порожньо. Під час пісні натисни ♡ — і вона з’явиться тут.</div>';
+    fl.forEach((f,i)=>L.appendChild(row(i,{artist:f.artist,track:f.track,cover:f.cover,go:()=>openById(f.id,f.track),remove:()=>{store.set('favs',store.get('favs',[]).filter(x=>x.id!==f.id));refreshChips()}})));return}
+  if(tab==='recent'){const rl=store.get('recent',[]);L.innerHTML=rl.length?'':'<div class="empty">Ще нічого не співала 🎤</div>';
+    rl.forEach((q,i)=>{const [a,t]=q.split(' — ');L.appendChild(row(i,{artist:a,track:t||'',go:()=>playRec({artist:a,track:t||''})}))});return}
+  L.innerHTML='<div class="empty">завантажую чарт…</div>';const c=await loadChart();if(tab!=='top')return;L.innerHTML='';
+  c.slice(0,30).forEach((r,i)=>L.appendChild(row(i,{n:i+1,...r,go:()=>playRec(r)})))}
+document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>{tab=b.dataset.t;store.set('tab',tab);refreshChips()});
+setTimeout(refreshChips,0);
 
 /* --- YouTube video lookup (no key needed; optional key in localStorage 'ytkey') --- */
 const PIPED=['https://pipedapi.kavin.rocks','https://api.piped.private.coffee','https://pipedapi.adminforge.de'];
@@ -726,7 +755,7 @@ async function wordTr(w){if(wordCache[w])return wordCache[w];
     if(r[1])t=r[1].slice(0,2).map(p=>p[1].slice(0,3).join(', ')).join('; ');return wordCache[w]=t}catch(e){return ''}}
 
 /* --- open a found song --- */
-async function playTrack(x){
+async function playTrack(x,cover){
   if(!x.syncedLyrics&&!x.plainLyrics){toast('Для цієї пісні немає тексту');return}
   const rec=store.get('recent',[]).filter(r=>r!==`${x.artistName} — ${x.trackName}`);rec.unshift(`${x.artistName} — ${x.trackName}`);store.set('recent',rec.slice(0,8));refreshChips();
   let lines;
@@ -736,7 +765,7 @@ async function playTrack(x){
   $('#loading').classList.remove('hidden');$('#loading div').textContent='♪ шукаю відео…';
   let vids=[];try{vids=await findVideos(x.artistName,x.trackName,x.duration)}catch(e){}
   $('#loading').classList.add('hidden');
-  const s={id:'lrc'+x.id,title:x.trackName.slice(0,30),artist:x.artistName,lines,langs:[['uk','UA']],gloss:{},meta:{id:x.id,artist:x.artistName,track:x.trackName}};
+  const s={id:'lrc'+x.id,title:x.trackName.slice(0,30),artist:x.artistName,lines,langs:[['uk','UA']],gloss:{},meta:{id:x.id,artist:x.artistName,track:x.trackName},cover:cover||''};
   if(!vids.length){
     const u=await askVideo(x);if(!u)return;vids=[{id:u}];
   }
@@ -775,6 +804,21 @@ $('#vidBtn').onclick=()=>{const w=$('#ytwrap');w.classList.toggle('mini');$('#vi
         document.body.classList.remove('dragging');W.classList.remove('drag');apply(cur(),true)};
       el.addEventListener('pointermove',mv);el.addEventListener('pointerup',up);el.addEventListener('pointercancel',up)})}
   hook($('#ythandle'),'move');hook($('#ygrip'),'size');
+  // the whole video: one finger drags, two fingers pinch-zoom, mouse wheel zooms
+  const cov=$('#ytcover'),pts=new Map();let start=null;
+  const dist=()=>{const [a,b]=[...pts.values()];return Math.hypot(a.x-b.x,a.y-b.y)};
+  const mid=()=>{const v=[...pts.values()];return {x:v.reduce((s,p)=>s+p.x,0)/v.length,y:v.reduce((s,p)=>s+p.y,0)/v.length}};
+  const begin=()=>{const c=cur(),m=mid();start={box:c,m,d:pts.size>1?dist():0}};
+  cov.addEventListener('pointerdown',e=>{cov.setPointerCapture(e.pointerId);pts.set(e.pointerId,{x:e.clientX,y:e.clientY});begin();start.t=Date.now();start.moved=false;document.body.classList.add('dragging');W.classList.add('drag')});
+  cov.addEventListener('pointermove',e=>{if(!pts.has(e.pointerId)||!start)return;pts.set(e.pointerId,{x:e.clientX,y:e.clientY});const m=mid(),b=start.box;
+    if(Math.abs(m.x-start.m.x)+Math.abs(m.y-start.m.y)>6)start.moved=true;
+    if(pts.size>1&&start.d){start.moved=true;const k=dist()/start.d,w=b.w*k;apply({x:m.x-(start.m.x-b.x)*k,y:m.y-(start.m.y-b.y)*k,w})}
+    else apply({x:b.x+m.x-start.m.x,y:b.y+m.y-start.m.y,w:b.w})});
+  const end=e=>{pts.delete(e.pointerId);if(pts.size){begin();return}
+    const tap=start&&!start.moved&&Date.now()-start.t<300;start=null;document.body.classList.remove('dragging');W.classList.remove('drag');apply(cur(),true);
+    if(tap)$('#playbtn').click()};
+  cov.addEventListener('pointerup',end);cov.addEventListener('pointercancel',end);
+  cov.addEventListener('wheel',e=>{e.preventDefault();const c=cur();const k=e.deltaY<0?1.08:1/1.08;apply({x:c.x-(c.w*k-c.w)/2,y:c.y-(c.w*k-c.w)*9/32,w:c.w*k},true)},{passive:false});
   addEventListener('resize',()=>{const b=store.get('ytbox',null);if(b)apply(b)});
 })();
 
@@ -783,7 +827,7 @@ function favs(){return store.get('favs',[])}
 function isFav(m){return m&&favs().some(f=>f.id===m.id)}
 function refreshFav(){const on=song&&isFav(song.meta);$('#favBtn').classList.toggle('on',!!on);$('#favBtn').textContent=on?'♥':'♡'}
 $('#favBtn').onclick=()=>{if(!song||!song.meta)return;let f=favs();
-  if(isFav(song.meta)){f=f.filter(x=>x.id!==song.meta.id);toast('Прибрано з обраного')}else{f.unshift(song.meta);toast('♥ Додано в обране')}
+  if(isFav(song.meta)){f=f.filter(x=>x.id!==song.meta.id);toast('Прибрано з обраного')}else{f.unshift({...song.meta,cover:song.cover||''});toast('♥ Додано в обране')}
   store.set('favs',f);refreshFav();refreshChips()};
 async function openById(id,label){$('#loading').classList.remove('hidden');$('#loading div').textContent='♪ відкриваю «'+label+'»…';
   try{const x=await getJSON(`${LRC}/get/${id}`);$('#loading').classList.add('hidden');playTrack(x)}catch(e){$('#loading').classList.add('hidden');toast('Не вдалося відкрити пісню, перевір інтернет')}}
@@ -826,22 +870,9 @@ async function showRecs(){
 async function playRec(r){$('#loading').classList.remove('hidden');$('#loading div').textContent='♪ шукаю текст…';
   try{const list=await searchSongs(`${r.artist} — ${r.track}`);$('#loading').classList.add('hidden');
     const x=list.find(x=>x.syncedLyrics)||list[0];if(!x){toast('Для цієї пісні не знайшов тексту 😿');return}
-    if(player)player.destroy();playTrack(x)}catch(e){$('#loading').classList.add('hidden');toast('Не вдалося, перевір інтернет')}}
+    if(player)player.destroy();playTrack(x,r.cover)}catch(e){$('#loading').classList.add('hidden');toast('Не вдалося, перевір інтернет')}}
 $('#recBtn').onclick=()=>{if($('#recs').classList.contains('hidden'))showRecs();else{$('#recs').classList.add('hidden');$('#recBtn').classList.remove('on')}};
 $('#recsClose').onclick=()=>{$('#recs').classList.add('hidden');$('#recBtn').classList.remove('on')};
-$('#demoBtn').onclick=async()=>{
-  if(!demoURL){$('#loading').classList.remove('hidden');try{demoURL=await renderDemo(DEMO.duration)}catch(e){toast('Не вдалося зібрати звук демо');$('#loading').classList.add('hidden');return}$('#loading').classList.add('hidden')}
-  openSong(DEMO,new FilePlayer(demoURL,DEMO.duration,true));toast('Натисни ▶ — і співай!');
-};
-$('#ownGo').onclick=()=>{
-  const f=$('#ownAudio').files[0];const raw=$('#ownLrc').value;
-  if(!f){toast('Обери аудіофайл');return}
-  const lines=parseLRC(raw);if(!lines.length){toast('Встав текст у форматі LRC: [хх:сс.xx] рядок');return}
-  const tr=$('#ownTr').value.split('\n').map(s=>s.trim()).filter(Boolean);
-  lines.forEach((l,i)=>l.tr={mine:tr[i]||''});
-  const s={id:'own',title:f.name.replace(/\.[^.]+$/,'').slice(0,28),artist:'твій файл',lines,langs:tr.length?[['mine','ПЕРЕКЛАД']]:[],gloss:{}};
-  openSong(s,new FilePlayer(URL.createObjectURL(f),lines[lines.length-1].t+8,false));
-};
 function parseLRC(txt){
   const out=[];txt.split(/\r?\n/).forEach(row=>{const tags=[...row.matchAll(/\[(\d+):(\d+(?:[.:]\d+)?)\]/g)];if(!tags.length)return;
     const text=row.replace(/\[[^\]]*\]/g,'').trim();if(!text)return;
