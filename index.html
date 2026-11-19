@@ -185,6 +185,63 @@ img{display:block;max-width:100%;user-select:none;-webkit-user-drag:none}
 .gbtns button{padding:12px 16px;font:800 13px Unbounded;background:url(paper_yellow.jpg) center/cover;clip-path:polygon(0 6%,100% 0,97% 100%,3% 94%)}
 .gbtns button.alt{background-image:url(paper_cream.jpg)}
 body.gaming .tr{display:none}
+/* --- study mode --- */
+#study{position:relative;z-index:2;flex:1;overflow-y:auto;padding:10px 12px 20px;-webkit-overflow-scrolling:touch}
+.sl{display:block;width:100%;text-align:left;margin:0 auto 8px;max-width:760px;padding:12px 14px;background:rgba(243,236,220,.06);border:1px dashed rgba(205,188,255,.22);color:var(--paper);transition:background .2s}
+.sl.playing{border-color:var(--acid);background:rgba(232,255,74,.08)}
+.sl .en{font:700 17px/1.35 Unbounded;color:var(--paper);text-shadow:none}
+.sl .en mark{background:none;color:var(--acid);border-bottom:2px solid var(--acid)}
+.sl .uk{font:14px/1.4 Onest;color:var(--lilac);margin-top:4px}
+.sl .more{display:none;margin-top:12px;padding-top:10px;border-top:1px dashed rgba(205,188,255,.25)}
+.sl.open{background:rgba(243,236,220,.1);border-style:solid;border-color:rgba(232,255,74,.5)}
+.sl.open .more{display:block;animation:sheet .3s var(--ease)}
+.tools2{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.tools2 button{padding:8px 11px;font:700 12px Onest;color:var(--ink);background:url(paper_cream.jpg) center/cover;clip-path:polygon(0 6%,100% 0,97% 100%,3% 94%)}
+.tools2 button.on{background-image:url(paper_yellow.jpg)}
+.ph{display:flex;gap:10px;align-items:flex-start;padding:9px 10px;margin-bottom:6px;background:url(paper_yellow.jpg) center/cover;color:var(--ink)}
+.ph div{flex:1;min-width:0}.ph b{font:800 14px Unbounded;display:block}.ph small{font:13px/1.35 Onest}
+.addb{flex:none;padding:6px 9px;font:700 12px Onest;color:var(--paper);background:url(paper_violet.jpg) center/cover;white-space:nowrap}
+.addb.done{background:none;color:var(--ink);opacity:.7}
+.wlab{font:700 11px Unbounded;color:var(--acid);letter-spacing:.06em;margin:8px 0 6px}
+.wchips{display:flex;flex-wrap:wrap;gap:6px}
+.wchips button{padding:6px 10px;font:600 14px Onest;color:var(--paper);border:1px solid rgba(205,188,255,.35);background:rgba(18,10,31,.35)}
+.wchips button.sel{background:url(paper_cream.jpg) center/cover;color:var(--ink)}
+.wbox{margin-top:8px}
+.shint{max-width:760px;margin:0 auto 10px;font:13px 'Special Elite',monospace;color:var(--lilac);text-align:center}
+/* --- home nav + dictionary --- */
+.hnav{position:fixed;z-index:30;left:50%;bottom:12px;translate:-50% 0;display:flex;gap:6px;padding:8px;background:url(strip_ink.webp) center/100% 100%;filter:drop-shadow(0 6px 10px rgba(0,0,0,.5))}
+.hnav button{white-space:nowrap;padding:11px 18px;font:700 13px Unbounded;color:var(--paper);opacity:.7}
+.hnav button.on{color:var(--ink);background:url(paper_yellow.jpg) center/cover;opacity:1;clip-path:polygon(0 6%,100% 0,97% 100%,3% 94%)}
+#dueBadge:empty{display:none}
+#dueBadge{display:inline-block;min-width:20px;padding:1px 6px;margin-left:4px;font:800 11px Onest;color:var(--paper);background:#c4002f;border-radius:10px}
+#dictView{padding-top:30px;padding-bottom:120px}
+.dhead{display:flex;align-items:baseline;gap:10px;margin-bottom:16px}.dhead b{font:900 22px Unbounded;color:var(--acid)}.dhead span{font:14px Onest;color:var(--lilac)}
+.revcard{display:block;width:100%;text-align:left;padding:20px 22px;margin-bottom:16px;background:url(card_cream.webp) center/100% 100%;color:var(--ink);filter:drop-shadow(4px 6px 4px rgba(0,0,0,.4));transition:transform .25s var(--ease)}
+.revcard:hover{transform:rotate(-1deg) scale(1.01)}
+.revcard b{display:block;font:900 18px Unbounded}.revcard small{font:14px Onest;opacity:.75}
+.revcard.zero{opacity:.75;pointer-events:none}
+.dsearch{width:100%;margin-bottom:12px;padding:12px 14px;border:1px dashed rgba(205,188,255,.4);background:rgba(18,10,31,.35);color:var(--paper);font:15px Onest;outline:none}
+.di{display:flex;gap:10px;align-items:flex-start;padding:12px;margin-bottom:8px;background:rgba(243,236,220,.07);border:1px dashed rgba(205,188,255,.22);animation:drop .4s var(--ease) both}
+.di div{flex:1;min-width:0}.di b{font:800 16px Unbounded;color:var(--paper)}.di .m{font:14px Onest;color:var(--acid);margin:3px 0}
+.di i{display:block;font:13px Onest;color:var(--lilac)}.di small{font:12px Onest;color:rgba(205,188,255,.6)}
+.lvl{display:inline-flex;gap:3px;margin-left:8px;vertical-align:middle}.lvl em{width:7px;height:7px;border-radius:50%;background:rgba(205,188,255,.25)}.lvl em.on{background:var(--acid)}
+.di button{flex:none;color:var(--lilac);font-size:16px;padding:4px 6px}
+/* --- review cards --- */
+#review{position:fixed;inset:0;z-index:40;display:grid;place-items:center;padding:16px;background:rgba(14,4,34,.82);backdrop-filter:blur(4px)}
+.rv{width:min(100%,460px)}
+.rvbar{height:6px;background:rgba(205,188,255,.25);margin-bottom:14px}.rvbar i{display:block;height:100%;background:var(--acid);transition:width .4s}
+.rvcard{padding:26px 22px;min-height:300px;background:url(card_cream.webp) center/100% 100%;color:var(--ink);filter:drop-shadow(0 10px 16px rgba(0,0,0,.5));animation:flip .45s var(--ease)}
+@keyframes flip{from{transform:rotateY(70deg);opacity:0}}
+.rvcard .p{font:900 26px/1.2 Unbounded;margin-bottom:14px}
+.rvcard .ctx{font:15px/1.45 Onest;opacity:.85}.rvcard .ctx mark{background:rgba(232,255,74,.8);padding:0 3px}
+.rvcard .src{font:12px Onest;opacity:.55;margin-top:6px}
+.rvcard .ans{margin-top:16px;padding-top:14px;border-top:2px dashed rgba(18,10,31,.25)}
+.rvcard .ans b{display:block;font:800 18px Onest;color:#5a22d6;margin-bottom:6px}
+.rvbtns{display:flex;gap:8px;margin-top:14px}
+.rvbtns button{flex:1;padding:14px 10px;font:800 13px Unbounded;color:var(--ink);background:url(paper_yellow.jpg) center/cover;clip-path:polygon(0 6%,100% 0,97% 100%,3% 94%)}
+.rvbtns button.no{background-image:url(paper_cream.jpg)}
+.rvx{display:block;margin:14px auto 0;font:13px Onest;color:var(--lilac);text-decoration:underline}
+.say{padding:2px 6px;font-size:15px}
 body.gaming.lv-easy .tr,body.gaming.lv-mid .tr{display:inline-block}
 #stage{position:relative;z-index:2;flex:1;overflow:hidden;-webkit-mask-image:linear-gradient(transparent 0,#000 15%,#000 80%,transparent 100%);mask-image:linear-gradient(transparent 0,#000 15%,#000 80%,transparent 100%)}
 #stage::before{content:"";position:absolute;inset:0;background:radial-gradient(90% 60% at 40% 42%,rgba(12,3,30,.6),rgba(12,3,30,.2) 70%,transparent)}
@@ -357,9 +414,14 @@ body.dragging{user-select:none}
       <div class="tabs" id="tabs"><button data-t="top" class="on">🔥 Популярні</button><button data-t="fav">♥ Обране</button><button data-t="recent">🕘 Нещодавні</button></div>
       <div id="tablist"></div>
     </section>
-
-
   </div>
+  <section id="dictView" class="wrap hidden">
+    <div class="dhead"><b>📒 МІЙ СЛОВНИК</b><span id="dCount"></span></div>
+    <button id="revCard" class="revcard"></button>
+    <input id="dSearch" class="dsearch" placeholder="Пошук у словнику" autocomplete="off">
+    <div id="dList"></div>
+  </section>
+  <nav class="hnav" id="hnav"><button data-v="songs" class="on">🔎 Пісні</button><button data-v="dict">📒 Словник <span id="dueBadge"></span></button></nav>
 </main>
 
 <!-- ===== PLAYER ===== -->
@@ -373,7 +435,7 @@ body.dragging{user-select:none}
     <button class="iconbtn" id="favBtn" aria-label="В обране">♡</button>
     <button class="iconbtn" id="moreBtn" aria-label="Ще">⋯</button>
   </div>
-  <div class="modes" id="modes"><button data-m="sing" class="on">🎤 Співати</button><button data-m="game">🧩 Гра</button></div>
+  <div class="modes" id="modes"><button data-m="sing" class="on">🎤 Співати</button><button data-m="study">🔍 Розбір</button><button data-m="game">🧩 Гра</button></div>
   <div id="hud" class="hidden"><span id="hScore">0</span><span id="hCombo"></span><button id="gExit">✕ вийти з гри</button></div>
   <div id="more" class="sheet hidden">
     <div class="rhead"><b>НАЛАШТУВАННЯ</b><button id="moreClose" aria-label="Закрити">✕</button></div>
@@ -383,6 +445,7 @@ body.dragging{user-select:none}
     <div class="mrow"><span>Що послухати далі</span><button class="chip" id="recBtn">✦ далі</button></div>
   </div>
   <div id="status"></div>
+  <div id="study" class="hidden"></div>
   <div id="stage"><ul id="lyrics"></ul></div>
   <div id="ytwrap" class="hidden"><div class="ythandle" id="ythandle">⠿ тягни</div><div id="yt"></div><div class="ytcover" id="ytcover"></div><span class="yc tl" data-c="tl">↖</span><span class="yc tr" data-c="tr">↗</span><span class="yc bl" data-c="bl">↙</span><span class="yc br" data-c="br">↘</span></div>
   <button id="backNow" class="hidden">⤓ до поточного рядка</button>
@@ -407,6 +470,7 @@ body.dragging{user-select:none}
 </section>
 
 <div id="flash"></div>
+<div id="review" class="hidden"></div>
 <div id="loading" class="hidden"><div>♪ налаштовую звук…</div></div>
 <div id="tip"></div>
 <div id="toast"></div>
@@ -613,7 +677,7 @@ let song=null,player=null,cur=-2,sync=0,lang=store.get('lang','uk'),fsScale=stor
 const lyr=$('#lyrics'),stage=$('#stage');
 
 function openSong(s,p){
-  if(game)quitGame(true);$('#more').classList.add('hidden');setMode('sing');
+  if(game)quitGame(true);$('#more').classList.add('hidden');showMode('sing');
   browsing=false;stage.classList.remove('browsing');$('#backNow').classList.add('hidden');$('#recs').classList.add('hidden');
   song=s;player=p;cur=-2;sync=0;lastBeat=-1;
   if(s.titleImg){$('#ptitle').className='';$('#ptitle').innerHTML=`<img src="${s.titleImg}" alt="${esc(s.title)}">`}else{$('#ptitle').className='cutout';cutout($('#ptitle'),s.title.toUpperCase(),s.title.length*11)}
@@ -677,6 +741,8 @@ function loop(){
         w.style.setProperty('--w',Math.max(0,Math.min(1,v)).toFixed(3))});
     }
     if(game)gameTick(t,i);
+    if(studyStop!==null&&player.time()>=studyStop){if(loopLine!==null)player.seek(song.lines[loopLine].t-.05);else{player.pause();setPlayIcon();studyStop=null}}
+    if(mode==='study'&&i!==studyCur){studyCur=i;document.querySelectorAll('.sl').forEach((e,k)=>e.classList.toggle('playing',k===i))}
     // beat pulse (demo tempo is known; for own songs use a gentle 2s breathe)
     const bt=song.id==='demo'?60/90:2,ph=(player.time()%bt)/bt,bi=Math.floor(player.time()/bt);
     document.body.style.setProperty('--beat',player.playing?Math.pow(1-ph,3).toFixed(3):0);
@@ -977,6 +1043,208 @@ async function playRec(r){$('#loading').classList.remove('hidden');$('#loading d
     if(player)player.destroy();playTrack(x,r.cover)}catch(e){$('#loading').classList.add('hidden');toast('Не вдалося, перевір інтернет')}}
 $('#recBtn').onclick=()=>{$('#more').classList.add('hidden');if($('#recs').classList.contains('hidden'))showRecs();else{$('#recs').classList.add('hidden');$('#recBtn').classList.remove('on')}};
 $('#recsClose').onclick=()=>{$('#recs').classList.add('hidden');$('#recBtn').classList.remove('on')};
+/* ================= 🔍 study mode ================= */
+// phrases that don't translate word-for-word (pattern | meaning)
+const PHRASES=`come on|ну ж бо, давай (заклик, а не «прийди»)
+baby|кохана / коханий — ласкаве звертання, не «дитина»
+babe|кохана / коханий — ласкаве звертання
+fall in love|закохатися
+fall for|закохатися в когось; повестися на щось
+in love with|закоханий у
+crush on|бути закоханим (по-дитячому) у
+i'm into|мені подобається, я захоплююсь
+into you|запав(ла) на тебе
+get over|пережити, оговтатися від
+give up|здатися, кинути
+give in|поступитися, піддатися
+let go|відпустити
+let it go|відпусти, забудь
+hold on|тримайся; зачекай
+hang on|зачекай; тримайся
+move on|жити далі, відпустити минуле
+break up|розійтися (у стосунках)
+make up|помиритися; вигадати
+work out|скластися, вийти; тренуватися
+figure out|зрозуміти, розібратися
+turn up|зробити гучніше; з'явитися
+turn down|зробити тихіше; відмовити
+turn around|обернутися; змінити напрям
+show off|хизуватися
+all night long|цілу ніч безперервно
+all night|усю ніч
+right now|просто зараз
+for real|серйозно, по-справжньому
+no way|нізащо; не може бути
+by my side|поруч зі мною
+on my mind|у мене в думках, не йде з голови
+lose my mind|з'їхати з глузду
+out of my mind|не при собі, з'їхав з глузду
+can't help|не можу втриматися (від)
+miss you|сумую за тобою (не «пропускаю»)
+take my breath away|аж перехоплює подих
+broken heart|розбите серце
+heartbreak|біль розставання, розбите серце
+let's go|погнали!
+what's up|як справи? що там?
+i don't care|мені байдуже
+i don't mind|я не проти
+it's over|усе скінчилося
+used to|колись (раніше) робив(ла), а тепер ні
+gonna|= going to — збираюся, буду
+wanna|= want to — хочу
+gotta|= got to — мушу, треба
+ain't|розмовне «не» (= am not / is not / are not / have not)
+'cause|= because — бо, тому що
+y'all|ви всі (розмовне)
+tryna|= trying to — намагаюся
+in the middle of the night|посеред ночі
+over and over|знову і знову
+again and again|знову і знову
+forever and ever|назавжди-назавжди
+at the end of the day|зрештою, в підсумку
+make it|встигнути; досягти успіху, пробитися
+make me feel|змушує мене почуватися
+feel like|почуватися як; хотіти чогось
+looking for|шукаю
+wait for|чекати на
+care about|переживати за, піклуватися про
+dream about|мріяти про
+run away|втекти
+go away|піди геть, зникни
+stay with me|залишся зі мною
+come back|повернутися
+get back|повернути(ся)
+get it|зрозуміти; отримати
+got me|ти мене підкорив(ла); зачепило
+calm down|заспокойся
+slow down|пригальмуй, повільніше
+light up|засяяти, осяяти
+keep on|продовжувати
+by myself|сам(а), без нікого
+on my own|сам(а) по собі
+crazy about|шалено захоплюватися
+head over heels|по вуха закоханий
+i'm done|з мене досить
+so what|ну то й що
+whatever|байдуже; що завгодно
+blow my mind|вражає до глибини душі
+mess with|зв'язуватися з; морочити голову
+deal with|мати справу з, впоратися з
+pick up|підняти; забрати; підібрати
+hit me up|напиши / набери мені
+ride or die|відданий до кінця
+kind of|трохи, ніби
+a little bit|трошки
+all the time|весь час
+every time|щоразу
+all i want|все, чого я хочу
+i wish|шкода, що… / хотілося б
+if only|якби ж
+no matter|неважливо, байдуже
+even if|навіть якщо
+tonight|сьогодні ввечері / вночі
+shawty|дівчина, крихітка (сленг)
+vibe|атмосфера, настрій
+chill|розслабитися; спокійний
+lit|запальний, крутий
+fancy|подобатися; модний
+honey|любий / люба (звертання)
+darling|любий / люба
+sweetheart|серденько, кохана(ий)
+girl|дівчино (часто звертання)
+boy|хлопче (часто звертання)
+yeah|ага, так
+gimme|= give me — дай мені
+lemme|= let me — дай мені, дозволь
+outta|= out of — з, геть з
+kinda|= kind of — трохи, ніби
+dunno|= don't know — не знаю`.split('\n').map(l=>{const [p,m]=l.split('|');
+  return {p,m,re:new RegExp('(^|[^a-z\'])('+p.replace(/'/g,"['’]?").replace(/ /g,"[\\s,]+")+')(?![a-z])','i')}});
+function findPhrases(line){const hit=[],low=line.toLowerCase();PHRASES.forEach(ph=>{const m=low.match(ph.re);if(m&&!hit.some(h=>h.p.includes(ph.p)))hit.push(ph)});return hit.slice(0,4)}
+function markPhrases(line,hits){let out=esc(line);hits.forEach(h=>{out=out.replace(new RegExp('(^|[^A-Za-z\'])('+h.p.replace(/[.*+?^${}()|[\]\\]/g,'\\$&').replace(/'/g,"['’]?").replace(/ /g,"[\\s,]+")+')(?![A-Za-z])','i'),'$1<mark>$2</mark>')});return out}
+let studyStop=null,loopLine=null,studyCur=-2,studyOpen=-1,rate=1;
+function setRate(r){rate=r;try{player&&player.p&&player.p.setPlaybackRate&&player.p.setPlaybackRate(r)}catch(e){}}
+function say(text){try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang='en-US';u.rate=.9;speechSynthesis.speak(u)}catch(e){toast('Озвучка недоступна в цьому браузері')}}
+function playLine(i,loop){const L=song.lines;loopLine=loop?i:null;studyStop=(i+1<L.length?L[i+1].t:L[i].t+5)-.05;player.seek(Math.max(0,L[i].t-.05));player.play();setTimeout(setPlayIcon,300)}
+function renderStudy(){
+  const S=$('#study');studyCur=-2;
+  S.innerHTML='<div class="shint">Тапни рядок — побачиш фрази, слова і зможеш прослухати його окремо</div>'+song.lines.map((l,i)=>{
+    const hits=findPhrases(l.en);
+    return `<div class="sl${i===studyOpen?' open':''}" data-i="${i}"><div class="en">${markPhrases(l.en,hits)}</div><div class="uk">${esc((l.tr||{}).uk||'')}</div><div class="more"></div></div>`}).join('');
+  if(studyOpen>=0)fillMore(studyOpen);
+}
+function fillMore(i){
+  const card=$('#study').querySelector(`.sl[data-i="${i}"]`);if(!card)return;const l=song.lines[i],hits=findPhrases(l.en),M=card.querySelector('.more');
+  const words=[...new Set(l.en.split(/\s+/).map(w=>w.replace(/[^A-Za-z'’-]/g,'')).filter(w=>w.length>1&&!FILLER.test(norm(w))))];
+  M.innerHTML=`<div class="tools2"><button data-a="play">▶ послухати</button><button data-a="loop" class="${loopLine===i?'on':''}">🔁 по колу</button><button data-a="slow" class="${rate<1?'on':''}">🐢 0.75×</button><button data-a="say">🔊 вимова</button><button data-a="line">＋ рядок у словник</button></div>`+
+    (hits.length?`<div class="wlab">ФРАЗИ</div>`+hits.map((h,k)=>`<div class="ph"><div><b>${esc(h.p)}</b><small>${esc(h.m)}</small></div><button class="addb" data-k="${k}">＋ у словник</button></div>`).join(''):'')+
+    `<div class="wlab">СЛОВА · тапни, щоб перекласти</div><div class="wchips">${words.map(w=>`<button data-w="${esc(w)}">${esc(w)}</button>`).join('')}</div><div class="wbox"></div>`;
+  M.querySelectorAll('.tools2 button').forEach(b=>b.onclick=e=>{e.stopPropagation();const a=b.dataset.a;
+    if(a==='play')playLine(i,false);
+    if(a==='loop'){if(loopLine===i){loopLine=null;b.classList.remove('on')}else{playLine(i,true);b.classList.add('on')}}
+    if(a==='slow'){setRate(rate<1?1:.75);b.classList.toggle('on',rate<1);toast(rate<1?'🐢 Повільно: 0.75×':'Звичайна швидкість')}
+    if(a==='say')say(l.en);
+    if(a==='line'){addToDict({phrase:l.en,mean:(l.tr||{}).uk||'',line:l.en,tr:(l.tr||{}).uk||''});b.textContent='✓ збережено'}});
+  M.querySelectorAll('.ph .addb').forEach(b=>b.onclick=e=>{e.stopPropagation();const h=hits[+b.dataset.k];addToDict({phrase:h.p,mean:h.m,line:l.en,tr:(l.tr||{}).uk||''});b.textContent='✓ є';b.classList.add('done')});
+  M.querySelectorAll('.wchips button').forEach(b=>b.onclick=async e=>{e.stopPropagation();M.querySelectorAll('.wchips button').forEach(x=>x.classList.toggle('sel',x===b));
+    const w=b.dataset.w,box=M.querySelector('.wbox');box.innerHTML=`<div class="ph"><div><b>${esc(w)}</b><small>перекладаю…</small></div></div>`;
+    const t=await wordTr(norm(w)||w);box.innerHTML=`<div class="ph"><div><b>${esc(w)} <button class="say" title="вимова">🔊</button></b><small>${esc(t||'не знайшов переклад')}</small></div><button class="addb">＋ у словник</button></div>`;
+    box.querySelector('.say').onclick=ev=>{ev.stopPropagation();say(w)};
+    box.querySelector('.addb').onclick=ev=>{ev.stopPropagation();addToDict({phrase:w.toLowerCase(),mean:t,line:l.en,tr:(l.tr||{}).uk||''});ev.target.textContent='✓ є';ev.target.classList.add('done')}});
+}
+$('#study').addEventListener('click',e=>{const c=e.target.closest('.sl');if(!c||e.target.closest('.more'))return;const i=+c.dataset.i;
+  const was=c.classList.contains('open');document.querySelectorAll('.sl.open').forEach(x=>x.classList.remove('open'));
+  if(was){studyOpen=-1;return}studyOpen=i;c.classList.add('open');fillMore(i)});
+
+/* ================= 📒 dictionary + spaced repetition ================= */
+const DAY=864e5,STEPS=[0,1,2,4,7,15,30];
+function dict(){return store.get('dict',[]).map(x=>({id:x.id||x.at||Math.random(),box:x.box||0,due:x.due||0,mean:x.mean||'',...x}))}
+function saveDict(d){store.set('dict',d);updDue()}
+async function addToDict(o){
+  const d=dict(),songName=song?song.artist+' — '+song.title:'';
+  if(d.some(x=>x.phrase.toLowerCase()===o.phrase.toLowerCase()&&x.song===songName)){toast('Уже є у словнику');return}
+  const item={id:Date.now()+Math.random(),phrase:o.phrase,mean:o.mean||'',line:o.line||'',tr:o.tr||'',song:songName,box:0,due:0,at:Date.now()};
+  d.unshift(item);saveDict(d);toast('📒 Додано в словник');
+  if(!item.mean&&item.phrase.split(' ').length<=3){const m=await wordTr(norm(item.phrase)||item.phrase);if(m){const d2=dict();const it=d2.find(x=>x.id===item.id);if(it){it.mean=m;saveDict(d2)}}}
+}
+function dueList(){const now=Date.now();return dict().filter(x=>x.due<=now)}
+function updDue(){const n=dueList().length;$('#dueBadge').textContent=n?n:''}
+function renderDict(){
+  const d=dict(),q=$('#dSearch').value.trim().toLowerCase(),due=dueList().length;
+  $('#dCount').textContent=d.length?d.length+' '+(d.length%10===1&&d.length%100!==11?'фраза':(d.length%10>=2&&d.length%10<=4&&(d.length%100<10||d.length%100>=20))?'фрази':'фраз'):'';
+  const R=$('#revCard');R.classList.toggle('zero',!due);
+  R.innerHTML=due?`<b>🧠 Повторити сьогодні: ${due}</b><small>Карточки по 1 хвилині — так фрази запам’ятовуються назавжди</small>`:(d.length?'<b>✓ На сьогодні все повторено</b><small>Нові карточки з’являться завтра</small>':'<b>Словник поки порожній</b><small>Додавай слова й фрази в режимі 🔍 Розбір або після гри 🧩</small>');
+  const L=$('#dList');L.innerHTML='';
+  d.filter(x=>!q||(x.phrase+' '+x.mean+' '+x.line).toLowerCase().includes(q)).forEach((x,i)=>{const el=document.createElement('div');el.className='di';el.style.animationDelay=Math.min(i,10)*.03+'s';
+    el.innerHTML=`<div><b>${esc(x.phrase)}</b><span class="lvl" title="наскільки добре запам’ятала">${[1,2,3,4,5].map(k=>`<em class="${x.box>=k?'on':''}"></em>`).join('')}</span><div class="m">${esc(x.mean||x.tr||'')}</div>${x.line&&x.line!==x.phrase?`<i>«${esc(x.line)}»</i>`:''}<small>${esc(x.song||'')}</small></div><button class="say" title="вимова">🔊</button><button title="Видалити">✕</button>`;
+    const [sb,xb]=el.querySelectorAll('button');sb.onclick=()=>say(x.phrase);xb.onclick=()=>{saveDict(dict().filter(y=>y.id!==x.id));renderDict()};L.appendChild(el)});
+}
+$('#dSearch').addEventListener('input',renderDict);
+$('#revCard').onclick=()=>startReview();
+document.querySelectorAll('#hnav button').forEach(b=>b.onclick=()=>{const v=b.dataset.v;
+  document.querySelectorAll('#hnav button').forEach(x=>x.classList.toggle('on',x===b));
+  $('#dictView').classList.toggle('hidden',v!=='dict');document.querySelector('#home .wrap').classList.toggle('hidden',v==='dict');
+  $('#draw').classList.toggle('hidden',v==='dict');document.querySelectorAll('.marquee').forEach(m=>m.classList.toggle('hidden',v==='dict'));
+  if(v==='dict'){renderDict();scrollTo(0,0)}});
+let rq=null;
+function startReview(){const q=dueList().sort(()=>Math.random()-.5).slice(0,20);if(!q.length)return;rq={q,i:0,total:q.length,done:0};$('#review').classList.remove('hidden');showCard()}
+function showCard(){
+  const R=$('#review');if(rq.i>=rq.q.length){R.innerHTML=`<div class="rv"><div class="rvcard"><div class="p">🎉 Готово!</div><div class="ctx">Повторено карточок: <b>${rq.done}</b>. Наступні з’являться, коли настане час повторити — так пам’ять закріплюється найкраще.</div><div class="rvbtns"><button id="rvEnd">до словника</button></div></div></div>`;
+    $('#rvEnd').onclick=()=>{R.classList.add('hidden');renderDict()};return}
+  const x=rq.q[rq.i],ctx=x.line&&x.line.toLowerCase()!==x.phrase.toLowerCase()?markPhrases(x.line,[{p:x.phrase}]):'';
+  R.innerHTML=`<div class="rv"><div class="rvbar"><i style="width:${rq.done/rq.total*100}%"></i></div><div class="rvcard"><div class="p">${esc(x.phrase)} <button class="say" id="rvSay">🔊</button></div>${ctx?`<div class="ctx">«${ctx}»</div>`:''}<div class="src">${esc(x.song||'')}</div>
+    <div class="ans hidden" id="rvAns"><b>${esc(x.mean||x.tr||'—')}</b>${x.tr&&x.tr!==x.mean?`<div class="ctx">«${esc(x.tr)}»</div>`:''}</div>
+    <div class="rvbtns" id="rvB1"><button id="rvShow">👀 Показати переклад</button></div>
+    <div class="rvbtns hidden" id="rvB2"><button class="no" id="rvNo">😕 Не пам’ятаю</button><button id="rvYes">🙂 Пам’ятаю</button></div></div><button class="rvx" id="rvQuit">закінчити</button></div>`;
+  $('#rvSay').onclick=()=>say(x.phrase);
+  $('#rvShow').onclick=()=>{$('#rvAns').classList.remove('hidden');$('#rvB1').classList.add('hidden');$('#rvB2').classList.remove('hidden')};
+  const grade=ok=>{const d=dict(),it=d.find(y=>y.id===x.id);if(it){it.box=ok?Math.min(STEPS.length-1,it.box+1):0;it.due=Date.now()+(ok?STEPS[it.box]*DAY:0);saveDict(d)}
+    if(!ok&&!x.again){x.again=true;rq.q.push(x)}else rq.done++;rq.i++;showCard()};
+  $('#rvNo').onclick=()=>grade(false);$('#rvYes').onclick=()=>grade(true);
+  $('#rvQuit').onclick=()=>{$('#review').classList.add('hidden');renderDict()};
+}
+setTimeout(updDue,0);
+
 /* ================= 🧩 game: fill in the missing word ================= */
 const STOP=new Set('the a an and or but so if of to in on at by for with from up as is am are was were be been it its it\'s i i\'m im me my you you\'re your we our they them their he she his her him this that these those there here what who how why when where not no yes oh ooh ah yeah hey la na do does did don\'t can can\'t will would just like got get all one too'.split(' '));
 const BANK=['love','heart','night','light','dance','never','always','feel','know','tonight','baby','world','dream','fire','time','away','again','alone','forever','money','stay','home','better','believe','crazy','hold','body','touch','eyes','mind','free','young','wild','gold','rain','sky','fall','run','ride','high','ready','real','right','slow','words','music','sing','shine'];
@@ -984,10 +1252,14 @@ let game=null;
 const FILLER=/^(m+|h?m+|u+h+|o+h+|a+h+|o+o+h*|n+a+|l+a+|d+a+|y+e+a+h+|wo+a+h*|whoa+|he+y+|ba+|ye+|i+|e+h*)$|(.)\2\2/;
 const norm=w=>w.toLowerCase().replace(/[’‘`]/g,"'").replace(/[^a-z0-9']/g,'').replace(/^'+|'+$/g,'');
 function setMode(m){document.querySelectorAll('#modes button').forEach(b=>b.classList.toggle('on',b.dataset.m===m))}
+let mode='sing';
+function showMode(m){mode=m;setMode(m);const st=m==='study';$('#study').classList.toggle('hidden',!st);stage.classList.toggle('hidden',st);if(st)renderStudy();else{studyStop=null;loopLine=null;setRate(1)}
+  if(!st)requestAnimationFrame(()=>center(cur,true))}
 document.querySelectorAll('#modes button').forEach(b=>b.onclick=()=>{
-  if(b.dataset.m==='game'){if(!game){player.pause();setPlayIcon();$('#gstart').classList.remove('hidden')}}
-  else if(game)quitGame()});
-$('#gCancel').onclick=()=>{$('#gstart').classList.add('hidden');setMode('sing')};
+  const m=b.dataset.m;if(m===mode&&m!=='game')return;
+  if(m==='game'){if(!game){showMode('sing');setMode('game');player.pause();setPlayIcon();$('#gstart').classList.remove('hidden')}return}
+  if(game)quitGame(true);showMode(m)});
+$('#gCancel').onclick=()=>{$('#gstart').classList.add('hidden');setMode(mode)};
 document.querySelectorAll('#gstart .lv button').forEach(b=>b.onclick=()=>startGame(b.dataset.l));
 $('#gExit').onclick=()=>quitGame();
 
@@ -1072,7 +1344,7 @@ function endGame(){
     ${wrong.length?`<p style="margin-bottom:8px"><b>Варто запам’ятати:</b></p><div class="miss-list">${wrong.map((g,i)=>`<div><b>${esc(g.shown||g.word)}</b><small>${esc(song.lines[g.li].en)}</small><button data-i="${i}">＋ у словник</button></div>`).join('')}</div>`:'<p>Жодної помилки! 🎉</p>'}
     <div class="gbtns"><button id="gAgain">↻ ще раз</button><button class="alt" id="gDone">до співу</button></div></div>`;
   R.querySelectorAll('.miss-list button').forEach(b=>b.onclick=()=>{const g=wrong[+b.dataset.i];
-    const d=store.get('dict',[]);if(!d.some(x=>x.phrase===g.word&&x.line===song.lines[g.li].en)){d.unshift({phrase:g.shown||g.word,line:song.lines[g.li].en,tr:(song.lines[g.li].tr||{}).uk||'',song:song.artist+' — '+song.title,at:Date.now()});store.set('dict',d)}
+    addToDict({phrase:(g.shown||g.word).toLowerCase(),line:song.lines[g.li].en,tr:(song.lines[g.li].tr||{}).uk||''});
     b.textContent='✓ збережено';b.disabled=true});
   const lvl=game.level;$('#gAgain').onclick=()=>{quitGame(true);startGame(lvl)};$('#gDone').onclick=()=>quitGame();
 }
