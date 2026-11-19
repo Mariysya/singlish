@@ -741,7 +741,6 @@ function loop(){
         w.style.setProperty('--w',Math.max(0,Math.min(1,v)).toFixed(3))});
     }
     if(game)gameTick(t,i);
-    if(studyStop!==null&&player.time()>=studyStop){if(loopLine!==null)player.seek(song.lines[loopLine].t-.05);else{player.pause();setPlayIcon();studyStop=null}}
     if(mode==='study'&&i!==studyCur){studyCur=i;document.querySelectorAll('.sl').forEach((e,k)=>e.classList.toggle('playing',k===i))}
     // beat pulse (demo tempo is known; for own songs use a gentle 2s breathe)
     const bt=song.id==='demo'?60/90:2,ph=(player.time()%bt)/bt,bi=Math.floor(player.time()/bt);
@@ -755,7 +754,7 @@ function setPlayIcon(){$('#playbtn').innerHTML=player&&player.playing?ICON_PAUSE
 
 $('#moreBtn').onclick=()=>$('#more').classList.toggle('hidden');
 $('#moreClose').onclick=()=>$('#more').classList.add('hidden');
-async function togglePlay(){if(!player)return;const was=player.playing;if(was)player.pause();else await player.play();
+async function togglePlay(){if(!player)return;stopLineTimer();const was=player.playing;if(was)player.pause();else await player.play();
   const f=$('#flash');f.innerHTML=was?ICON_PAUSE:ICON_PLAY;f.classList.remove('go');void f.offsetWidth;f.classList.add('go');setTimeout(setPlayIcon,300);setPlayIcon()}
 $('#playbtn').onclick=togglePlay;
 $('#rew').onclick=()=>{if(player){player.seek(Math.max(0,player.time()-10));cur=-2}};
@@ -1165,7 +1164,24 @@ function markPhrases(line,hits){let out=esc(line);hits.forEach(h=>{out=out.repla
 let studyStop=null,loopLine=null,studyCur=-2,studyOpen=-1,rate=1;
 function setRate(r){rate=r;try{player&&player.p&&player.p.setPlaybackRate&&player.p.setPlaybackRate(r)}catch(e){}}
 function say(text){try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang='en-US';u.rate=.9;speechSynthesis.speak(u)}catch(e){toast('Озвучка недоступна в цьому браузері')}}
-function playLine(i,loop){const L=song.lines;loopLine=loop?i:null;studyStop=(i+1<L.length?L[i+1].t:L[i].t+5)-.05;player.seek(Math.max(0,L[i].t-.05));player.play();setTimeout(setPlayIcon,300)}
+// play exactly one line: start playback first (phones ignore seeking while paused), jump with sound muted,
+// then watch the clock with a fast timer (screen animation frames are throttled on phones)
+let lineTimer=null,lineRange=null;
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+async function waitPlaying(ms){const t0=Date.now();while(Date.now()-t0<ms){if(player.p&&player.p.getPlayerState&&player.p.getPlayerState()===1)return true;await sleep(60)}return false}
+function stopLineTimer(){clearInterval(lineTimer);lineTimer=null;lineRange=null}
+async function playLine(i,loop){
+  const L=song.lines,st=Math.max(0,L[i].t-.35),en=(i+1<L.length?L[i+1].t:L[i].t+5)+.12;
+  stopLineTimer();loopLine=loop?i:null;const P=player.p;
+  try{P.mute()}catch(e){}
+  if(!player.playing){player.play();await waitPlaying(3000)}
+  player.seek(st);await sleep(150);
+  if(Math.abs(P.getCurrentTime()-st)>.6){player.seek(st);await sleep(150)}
+  try{P.unMute()}catch(e){}
+  setTimeout(setPlayIcon,200);lineRange={st,en};
+  lineTimer=setInterval(()=>{if(!player||!player.ready||!lineRange)return stopLineTimer();const t=P.getCurrentTime();
+    if(t>=lineRange.en||t<lineRange.st-2){if(loopLine!==null)player.seek(lineRange.st);else{player.pause();setPlayIcon();stopLineTimer()}}},40);
+}
 function renderStudy(){
   const S=$('#study');studyCur=-2;
   S.innerHTML='<div class="shint">Тапни рядок — побачиш фрази, слова і зможеш прослухати його окремо</div>'+song.lines.map((l,i)=>{
@@ -1181,7 +1197,7 @@ function fillMore(i){
     `<div class="wlab">СЛОВА · тапни, щоб перекласти</div><div class="wchips">${words.map(w=>`<button data-w="${esc(w)}">${esc(w)}</button>`).join('')}</div><div class="wbox"></div>`;
   M.querySelectorAll('.tools2 button').forEach(b=>b.onclick=e=>{e.stopPropagation();const a=b.dataset.a;
     if(a==='play')playLine(i,false);
-    if(a==='loop'){if(loopLine===i){loopLine=null;b.classList.remove('on')}else{playLine(i,true);b.classList.add('on')}}
+    if(a==='loop'){if(loopLine===i){loopLine=null;b.classList.remove('on');player.pause();stopLineTimer();setPlayIcon()}else{playLine(i,true);b.classList.add('on')}}
     if(a==='slow'){setRate(rate<1?1:.75);b.classList.toggle('on',rate<1);toast(rate<1?'🐢 Повільно: 0.75×':'Звичайна швидкість')}
     if(a==='say')say(l.en);
     if(a==='line'){addToDict({phrase:l.en,mean:(l.tr||{}).uk||'',line:l.en,tr:(l.tr||{}).uk||''});b.textContent='✓ збережено'}});
@@ -1253,7 +1269,7 @@ const FILLER=/^(m+|h?m+|u+h+|o+h+|a+h+|o+o+h*|n+a+|l+a+|d+a+|y+e+a+h+|wo+a+h*|wh
 const norm=w=>w.toLowerCase().replace(/[’‘`]/g,"'").replace(/[^a-z0-9']/g,'').replace(/^'+|'+$/g,'');
 function setMode(m){document.querySelectorAll('#modes button').forEach(b=>b.classList.toggle('on',b.dataset.m===m))}
 let mode='sing';
-function showMode(m){mode=m;setMode(m);const st=m==='study';$('#study').classList.toggle('hidden',!st);stage.classList.toggle('hidden',st);if(st)renderStudy();else{studyStop=null;loopLine=null;setRate(1)}
+function showMode(m){mode=m;setMode(m);const st=m==='study';$('#study').classList.toggle('hidden',!st);stage.classList.toggle('hidden',st);if(st)renderStudy();else{stopLineTimer();loopLine=null;setRate(1)}
   if(!st)requestAnimationFrame(()=>center(cur,true))}
 document.querySelectorAll('#modes button').forEach(b=>b.onclick=()=>{
   const m=b.dataset.m;if(m===mode&&m!=='game')return;
