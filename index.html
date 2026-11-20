@@ -763,6 +763,7 @@ function loop(){
   const step=()=>{
     if(!song)return;const t=player.time()+sync+.08,L=song.lines;
     let i=-1;for(let k=0;k<L.length;k++){if(t>=L[k].t)i=k;else break}
+    if(game&&(game.waiting||game.replay)&&game.active)i=Math.max(i,game.active.li); // paused before a gap line: show that line
     if(i!==cur){cur=i;setActive(i)}
     if(i>=0){
       const start=L[i].t,next=i+1<L.length?L[i+1].t:start+5;
