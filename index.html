@@ -1453,22 +1453,24 @@ function startGame(level){
 function updHud(bump){$('#hScore').textContent=game.score;$('#hCombo').textContent=game.combo>1?'×'+Math.min(game.combo,5)+' комбо':'';if(bump){const h=$('#hScore');h.classList.remove('bump');void h.offsetWidth;h.classList.add('bump')}}
 const synced=()=>song.lyrDur&&player.duration&&Math.abs(player.duration-song.lyrDur)<=2.5;
 function gapStop(g){const L=song.lines,l=L[g.li],end=g.li+1<L.length?L[g.li+1].t:l.t+5;
-  if(synced()&&l.words&&l.words[g.wi])return {t:l.words[g.wi].t-.22,before:true};
-  return {t:Math.min(end-.05,l.t+12),before:false}}
+  if(synced()&&l.words&&l.words[g.wi])return {t:l.words[g.wi].t-.22,mode:'word',from:l.t-.6,to:l.words[g.wi].t-.22};
+  return {t:Math.max(0,l.t-.35),mode:'line',from:Math.max(0,l.t-.35),to:Math.min(end-.4,l.t+12)}}
 function gameTick(t,i){
   const L=song.lines;
   if(game.replay){if(t>=game.replay.until||!player.playing&&game.replay.started){player.pause();setPlayIcon();game.replay=null}else if(player.playing)game.replay.started=1;game.lastT=t;return}
   const jumped=game.lastT!=null&&t-game.lastT>1.5;game.lastT=t;
   if(jumped&&!game.waiting)game.gaps.forEach(g=>{if(g.state==='wait'&&gapStop(g).t<t-.6)resolve(g,'miss')});
   const g=game.gaps.find(x=>x.state==='wait');
+  if(g&&game.pending&&performance.now()<game.pending.until&&g.li!==game.pending.li)return;
   if(g&&!game.waiting&&t>=gapStop(g).t){game.waiting=true;game.stopAt=gapStop(g);player.pause();setPlayIcon();showQ(g,true);return}
   if(g&&!game.waiting&&t>=L[g.li].t-1.4&&game.active!==g)showQ(g);
 }
-function gameReplay(g){const st=game.stopAt||gapStop(g);game.replay={until:st.t};player.seek(Math.max(0,song.lines[g.li].t-.6));player.play();setTimeout(setPlayIcon,300)}
+function gameReplay(g){const st=game.stopAt||gapStop(g);game.replay={until:st.to};player.seek(Math.max(0,st.from));player.play();setTimeout(setPlayIcon,300)}
 function showQ(g,waiting){
   game.active=g;game.gaps.forEach(x=>x.el.classList.toggle('now',x===g));
   const bar=$('#gamebar');bar.classList.remove('hidden','shake');
-  const hint=(waiting?(game.stopAt&&game.stopAt.before?'⏸ яке слово зараз прозвучить?':'⏸ яке слово ти почула?'):'яке слово тут співають?')+(waiting?' <button class="rep" type="button">↺ ще раз</button>':'');
+  const lm=game.stopAt&&game.stopAt.mode==='line';
+  const hint=(waiting?(lm?'⏸ вгадай слово в цьому рядку':'⏸ яке слово зараз прозвучить?'):'яке слово тут співають?')+(waiting?` <button class="rep" type="button">${lm?'▶ послухати рядок':'↺ ще раз'}</button>`:'');
   if(game.level==='pro'){bar.innerHTML=`<div class="q">${hint}</div><form id="gForm"><input id="gIn" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="надрукуй слово"><button>✓</button></form>`;
     $('#gForm').onsubmit=e=>{e.preventDefault();const v=norm($('#gIn').value);if(!v)return;answer(g,v)};
     if(!matchMedia('(pointer:coarse)').matches)setTimeout(()=>$('#gIn')&&$('#gIn').focus(),50);return}
@@ -1490,7 +1492,8 @@ function resolve(g,st){
     const r=g.el.getBoundingClientRect(),p=document.createElement('div');p.className='pts';p.textContent='+'+pts;p.style.left=r.left+'px';p.style.top=r.top-10+'px';document.body.appendChild(p);setTimeout(()=>p.remove(),1000)}
   else{game.combo=0;updHud()}
   if(game.active===g){game.active=null;setTimeout(()=>{if(game&&!game.active)$('#gamebar').classList.add('hidden')},st==='ok'?350:700)}
-  if(game.waiting){game.waiting=false;game.replay=null;game.stopAt=null;game.lastT=null;setTimeout(()=>{if(game&&!game.waiting){player.play();setTimeout(setPlayIcon,300)}},500)}
+  if(game.waiting){const st=game.stopAt;game.waiting=false;game.pending={li:g.li,until:performance.now()+1300};game.replay=null;game.stopAt=null;game.lastT=null;
+    setTimeout(()=>{if(game&&!game.waiting){if(st&&st.mode==='line')player.seek(st.from);player.play();setTimeout(setPlayIcon,300)}},st&&st.mode==='line'?900:500)}
   if(game.gaps.every(x=>x.state!=='wait'))setTimeout(()=>{if(game)endGame()},1800);
 }
 function endGame(){
