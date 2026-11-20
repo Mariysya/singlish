@@ -481,7 +481,7 @@ body.dragging{user-select:none}
   <div id="gstart" class="hidden"><div class="gcard">
     <b class="gt">🧩 ВСТАВ ПРОПУЩЕНЕ СЛОВО</b>
     <p>У тексті будуть пропуски. Коли підходить рядок, обери правильне слово, поки його не проспівали. Влучання поспіль множать очки!</p>
-    <div class="lv"><button data-l="easy"><b>Легкий</b><small>3 варіанти · пісня чекає на відповідь</small></button>
+    <div class="lv"><button data-l="easy"><b>Легкий</b><small>3 варіанти · є друга спроба</small></button>
       <button data-l="mid"><b>Середній</b><small>4 варіанти · більше пропусків</small></button>
       <button data-l="pro"><b>Профі</b><small>без варіантів — друкуєш сама</small></button></div>
     <button class="gcancel" id="gCancel">повернутися до співу</button></div></div>
@@ -1454,8 +1454,9 @@ function gameTick(t,i){
       if(t>=wt-.22&&!game.waiting&&player.playing){game.waiting=true;player.pause();setPlayIcon();showQ(g,true)}
       break}
     if(t>=end-.05){
-      if(game.level==='easy'){if(!game.waiting&&player.playing){game.waiting=true;player.pause();setPlayIcon();showQ(g,true)}return}
-      resolve(g,'miss');}
+      if(t>end+2&&!game.waiting){resolve(g,'miss');break}
+      if(!game.waiting&&player.playing){game.waiting=true;player.pause();setPlayIcon();showQ(g,true)}
+      return}
     break}
   // show the question a little before its line starts
   const next=game.gaps.find(g=>g.state==='wait');
