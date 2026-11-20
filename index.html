@@ -749,7 +749,10 @@ function center(i,instant){
   const y=stage.clientHeight*.4-(el.offsetTop+el.offsetHeight/2);curY=y;
   if(instant){lyr.style.transition='none';lyr.style.transform=`translateY(${y}px)`;lyr.offsetHeight;lyr.style.transition=''}
   else lyr.style.transform=`translateY(${y}px)`}
-function setActive(i){
+let trBusy=false;
+function lazyTr(i){const l=song&&song.lines[i];if(!l||trBusy||(l.tr&&l.tr.uk)||!song.lines.some(x=>x.tr))return;trBusy=true;const s0=song;
+  fillMissingTr(s0).finally(()=>setTimeout(()=>trBusy=false,15000))}
+function setActive(i){if(i>=0)lazyTr(i);
   lyr.querySelectorAll('.line').forEach((li,k)=>{li.classList.toggle('active',k===i);li.classList.toggle('past',k<i);li.classList.toggle('near',Math.abs(k-i)===1&&k>i);
     if(k!==i)li.querySelectorAll('.w').forEach(w=>{w.style.removeProperty('--w');w._done=false})});
   center(i);if(playerPaint)playerPaint.burst(1.2);
@@ -933,13 +936,23 @@ const SLANG=[[/\bbab(y|e)\b/gi,'darling'],[/\bgonna\b/gi,'going to'],[/\bwanna\b
   [/\bya\b/gi,'you'],[/\bem\b/gi,'them'],[/\bin'(?=\s|$)/gi,'ing'],[/(\w)in'(?=\s|$)/gi,'$1ing'],[/\bthang\b/gi,'thing'],[/\bimma\b/gi,'I am going to'],[/\bwhatcha\b/gi,'what are you'],
   [/\boh+\b|\bwoah\b|\bwhoa\b|\byeah+\b|\bna(-na)+\b|\bla(-la)+\b|\bhey\b/gi,m=>m]];
 function clean(l){let x=l;SLANG.forEach(([r,v])=>x=x.replace(r,v));return x.replace(/\(([^)]*)\)/g,'— $1')}
+async function gtxVia(text){ // browser first, then our Cloudflare proxy (different network, cached)
+  try{return await gtx(text)}catch(e){}
+  return await getJSON(`${API}/tr?q=${encodeURIComponent(text)}`,9000)}
+async function trChunk(chunk){
+  try{const r=await gtxVia(chunk.join('\n'));const t=r[0].map(x=>x[0]).join('').split('\n').map(x=>x.trim());
+    if(t.length===chunk.length)return t;
+    if(chunk.length>1){const h=Math.ceil(chunk.length/2);return [...await trChunk(chunk.slice(0,h)),...await trChunk(chunk.slice(h))]}}catch(e){}
+  if(chunk.length>1){const h=Math.ceil(chunk.length/2);return [...await trChunk(chunk.slice(0,h)),...await trChunk(chunk.slice(h))]}
+  try{const m=await getJSON(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(chunk[0])}&langpair=en|uk`);const v=m.responseData.translatedText||'';return [/MYMEMORY WARNING|QUERY LENGTH/i.test(v)?'':v]}catch(e){return ['']}}
 async function translateLines(lines){lines=lines.map(clean);
-  const out=[];let chunk=[];const flush=async()=>{if(!chunk.length)return;
-    try{const r=await gtx(chunk.join('\n'));const t=r[0].map(x=>x[0]).join('').split('\n');chunk.forEach((_,i)=>out.push((t[i]||'').trim()))}
-    catch(e){for(const l of chunk){try{const m=await getJSON(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(l)}&langpair=en|uk`);out.push(m.responseData.translatedText)}catch(e2){out.push('')}}}
-    chunk=[]};
+  const out=[];let chunk=[];const flush=async()=>{if(!chunk.length)return;out.push(...await trChunk(chunk));chunk=[]};
   for(const l of lines){if(chunk.join('\n').length+l.length>1500)await flush();chunk.push(l)}await flush();return out;
 }
+const trFull=tr=>Array.isArray(tr)&&tr.length&&tr.every(Boolean);
+async function fillMissingTr(s){const miss=s.lines.map((l,i)=>(l.tr&&l.tr.uk)?null:i).filter(i=>i!==null);if(!miss.length)return;
+  const got=await translateLines(miss.map(i=>s.lines[i].en));miss.forEach((i,k)=>{if(got[k])s.lines[i].tr={uk:got[k]}});
+  if(song===s)setLang(lang);const all=s.lines.map(l=>(l.tr&&l.tr.uk)||'');if(all.every(Boolean)&&s.meta)store.set('tr2:'+s.meta.id,all)}
 const wordCache={};
 async function wordTr(w){if(wordCache[w])return wordCache[w];
   try{const r=await gtx(w,'&dt=bd');let t=r[0].map(x=>x[0]).join('');
@@ -1076,8 +1089,9 @@ async function playTrack(x,cover){
   await p.init();$('#dur').textContent=fmt(p.duration);setStatus('');toast('Натисни ▶ — і співай!');
   // translation in background
   const key='tr2:'+x.id;let tr=store.get(key,null);
-  if(!tr){setStatus('перекладаю українською…');try{tr=await translateLines(lines.map(l=>l.en));store.set(key,tr)}catch(e){tr=[]}setStatus('')}
-  if(song===s){lines.forEach((l,i)=>l.tr={uk:tr[i]||''});setLang(lang)}
+  if(!trFull(tr)||tr.length!==lines.length){setStatus('перекладаю українською…');try{tr=await translateLines(lines.map(l=>l.en))}catch(e){tr=[]}setStatus('');if(trFull(tr)&&tr.length===lines.length)store.set(key,tr)}
+  if(song===s){lines.forEach((l,i)=>l.tr={uk:tr[i]||''});setLang(lang);
+    if(!trFull(tr)||tr.length!==lines.length)setTimeout(()=>{if(song===s)fillMissingTr(s)},4000)}
 }
 function ytId(u){const m=String(u).match(/(?:v=|youtu\.be\/|shorts\/|embed\/)([\w-]{11})/);return m?m[1]:(/^[\w-]{11}$/.test(u)?u:null)}
 function askVideo(x){return new Promise(res=>{
