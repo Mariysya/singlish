@@ -212,6 +212,7 @@ body.isplaying #mic .mouth{animation:sing .42s ease-in-out infinite alternate}
 #bubble .wcard{margin:2px 0 10px;padding:9px 10px;background:rgba(232,255,74,.45);font:13px/1.4 Onest}
 #bubble .wcard button{margin-top:6px;padding:6px 9px;font:700 11px Unbounded;background:var(--ink);color:var(--acid)}
 body.gaming #buddy,#player.hidden #buddy{display:none}
+#gamebar .rep{margin-left:8px;padding:4px 9px;font:700 11px Unbounded;color:var(--acid);background:var(--ink);vertical-align:middle}
 body.gaming .tr{display:none}
 /* --- study mode --- */
 #study{position:relative;z-index:2;flex:1;overflow-y:auto;padding:10px 12px 20px;-webkit-overflow-scrolling:touch}
@@ -1058,8 +1059,14 @@ async function playTrack(x,cover){
   lines=lines.filter(l=>l.en&&!/^[♪\s]*$/.test(l.en));
   $('#loading').classList.remove('hidden');$('#loading div').textContent='♪ шукаю відео…';
   let vids=[];try{vids=await findVideos(x.artistName,x.trackName,x.duration)}catch(e){}
+  const vlen=vids[0]&&vids[0].len;
+  if(vlen&&Math.abs(vlen-x.duration)>2){ // lyrics timed for another version — look for a synced version that matches the video
+    try{const alts=await getJSON(`https://lrclib.net/api/search?artist_name=${encodeURIComponent(x.artistName)}&track_name=${encodeURIComponent(x.trackName)}`,6000);
+      const best=(alts||[]).filter(z=>z.syncedLyrics&&Math.abs(z.duration-vlen)<=2).sort((a,b)=>Math.abs(a.duration-vlen)-Math.abs(b.duration-vlen))[0];
+      if(best){x=best;lines=parseLRC(x.syncedLyrics).filter(l=>l.en&&!/^[♪\s]*$/.test(l.en))}
+      else{const v2=vids.find(v=>v.len&&Math.abs(v.len-x.duration)<=2&&v.score<vids[0].score+12);if(v2)vids=[v2,...vids.filter(v=>v!==v2)]}}catch(e){}}
   $('#loading').classList.add('hidden');
-  const s={id:'lrc'+x.id,title:x.trackName.slice(0,30),artist:x.artistName,lines,langs:[['uk','UA']],gloss:{},meta:{id:x.id,artist:x.artistName,track:x.trackName},cover:cover||''};
+  const s={id:'lrc'+x.id,lyrDur:x.duration,title:x.trackName.slice(0,30),artist:x.artistName,lines,langs:[['uk','UA']],gloss:{},meta:{id:x.id,artist:x.artistName,track:x.trackName},cover:cover||''};
   if(!vids.length){
     const u=await askVideo(x);if(!u)return;vids=[{id:u}];
   }
@@ -1444,34 +1451,31 @@ function startGame(level){
   player.seek(0);cur=-2;setTimeout(()=>{player.play();setTimeout(setPlayIcon,300)},150);
 }
 function updHud(bump){$('#hScore').textContent=game.score;$('#hCombo').textContent=game.combo>1?'×'+Math.min(game.combo,5)+' комбо':'';if(bump){const h=$('#hScore');h.classList.remove('bump');void h.offsetWidth;h.classList.add('bump')}}
+const synced=()=>song.lyrDur&&player.duration&&Math.abs(player.duration-song.lyrDur)<=2.5;
+function gapStop(g){const L=song.lines,l=L[g.li],end=g.li+1<L.length?L[g.li+1].t:l.t+5;
+  if(synced()&&l.words&&l.words[g.wi])return {t:l.words[g.wi].t-.22,before:true};
+  return {t:Math.min(end-.05,l.t+12),before:false}}
 function gameTick(t,i){
   const L=song.lines;
-  // a gap whose line has finished without an answer
-  for(const g of game.gaps){if(g.state!=='wait')continue;const end=g.li+1<L.length?L[g.li+1].t:L[g.li].t+5;
-    const wt=L[g.li].words&&L[g.li].words[g.wi]?L[g.li].words[g.wi].t:null;
-    if(wt!==null){ // precise: stop right before the hidden word
-      if(t>wt+2&&!game.waiting){resolve(g,'miss');break}
-      if(t>=wt-.22&&!game.waiting&&player.playing){game.waiting=true;player.pause();setPlayIcon();showQ(g,true)}
-      break}
-    if(t>=end-.05){
-      if(t>end+2&&!game.waiting){resolve(g,'miss');break}
-      if(!game.waiting&&player.playing){game.waiting=true;player.pause();setPlayIcon();showQ(g,true)}
-      return}
-    break}
-  // show the question a little before its line starts
-  const next=game.gaps.find(g=>g.state==='wait');
-  if(next&&t>=L[next.li].t-1.4&&game.active!==next)showQ(next);
+  if(game.replay){if(t>=game.replay.until||!player.playing&&game.replay.started){player.pause();setPlayIcon();game.replay=null}else if(player.playing)game.replay.started=1;game.lastT=t;return}
+  const jumped=game.lastT!=null&&t-game.lastT>1.5;game.lastT=t;
+  if(jumped&&!game.waiting)game.gaps.forEach(g=>{if(g.state==='wait'&&gapStop(g).t<t-.6)resolve(g,'miss')});
+  const g=game.gaps.find(x=>x.state==='wait');
+  if(g&&!game.waiting&&t>=gapStop(g).t){game.waiting=true;game.stopAt=gapStop(g);player.pause();setPlayIcon();showQ(g,true);return}
+  if(g&&!game.waiting&&t>=L[g.li].t-1.4&&game.active!==g)showQ(g);
 }
+function gameReplay(g){const st=game.stopAt||gapStop(g);game.replay={until:st.t};player.seek(Math.max(0,song.lines[g.li].t-.6));player.play();setTimeout(setPlayIcon,300)}
 function showQ(g,waiting){
   game.active=g;game.gaps.forEach(x=>x.el.classList.toggle('now',x===g));
   const bar=$('#gamebar');bar.classList.remove('hidden','shake');
-  const hint=waiting?'⏸ пісня чекає — яке слово пропущено?':'яке слово тут співають?';
+  const hint=(waiting?(game.stopAt&&game.stopAt.before?'⏸ яке слово зараз прозвучить?':'⏸ яке слово ти почула?'):'яке слово тут співають?')+(waiting?' <button class="rep" type="button">↺ ще раз</button>':'');
   if(game.level==='pro'){bar.innerHTML=`<div class="q">${hint}</div><form id="gForm"><input id="gIn" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="надрукуй слово"><button>✓</button></form>`;
     $('#gForm').onsubmit=e=>{e.preventDefault();const v=norm($('#gIn').value);if(!v)return;answer(g,v)};
     if(!matchMedia('(pointer:coarse)').matches)setTimeout(()=>$('#gIn')&&$('#gIn').focus(),50);return}
   bar.innerHTML=`<div class="q">${hint}</div><div class="opts">${g.opts.map(o=>`<button data-o="${o}">${o}</button>`).join('')}</div>`;
   bar.querySelectorAll('.opts button').forEach(b=>b.onclick=()=>answer(g,b.dataset.o,b));
 }
+document.addEventListener('click',e=>{const r=e.target.closest&&e.target.closest('#gamebar .rep');if(r&&game&&game.active&&game.waiting)gameReplay(game.active)});
 function answer(g,v,btn){
   if(g.state!=='wait')return;
   const ok=v===g.word||v.replace(/'/g,'')===g.word.replace(/'/g,'');
@@ -1486,7 +1490,7 @@ function resolve(g,st){
     const r=g.el.getBoundingClientRect(),p=document.createElement('div');p.className='pts';p.textContent='+'+pts;p.style.left=r.left+'px';p.style.top=r.top-10+'px';document.body.appendChild(p);setTimeout(()=>p.remove(),1000)}
   else{game.combo=0;updHud()}
   if(game.active===g){game.active=null;setTimeout(()=>{if(game&&!game.active)$('#gamebar').classList.add('hidden')},st==='ok'?350:700)}
-  if(game.waiting){game.waiting=false;setTimeout(()=>{if(game){player.play();setTimeout(setPlayIcon,300)}},500)}
+  if(game.waiting){game.waiting=false;game.replay=null;game.stopAt=null;game.lastT=null;setTimeout(()=>{if(game&&!game.waiting){player.play();setTimeout(setPlayIcon,300)}},500)}
   if(game.gaps.every(x=>x.state!=='wait'))setTimeout(()=>{if(game)endGame()},1800);
 }
 function endGame(){
