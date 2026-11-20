@@ -1074,11 +1074,16 @@ async function playTrack(x,cover){
   $('#loading').classList.remove('hidden');$('#loading div').textContent='♪ шукаю відео…';
   let vids=[];try{vids=await findVideos(x.artistName,x.trackName,x.duration)}catch(e){}
   const vlen=vids[0]&&vids[0].len;
-  if(vlen&&Math.abs(vlen-x.duration)>2){ // lyrics timed for another version — look for a synced version that matches the video
-    try{const alts=await getJSON(`https://lrclib.net/api/search?artist_name=${encodeURIComponent(x.artistName)}&track_name=${encodeURIComponent(x.trackName)}`,6000);
-      const best=(alts||[]).filter(z=>z.syncedLyrics&&Math.abs(z.duration-vlen)<=2).sort((a,b)=>Math.abs(a.duration-vlen)-Math.abs(b.duration-vlen))[0];
-      if(best){x=best;lines=parseLRC(x.syncedLyrics).filter(l=>l.en&&!/^[♪\s]*$/.test(l.en))}
-      else{const v2=vids.find(v=>v.len&&Math.abs(v.len-x.duration)<=2&&v.score<vids[0].score+12);if(v2)vids=[v2,...vids.filter(v=>v!==v2)]}}catch(e){}}
+  if(vlen&&x.syncedLyrics){ // pick the lyrics timing that most versions agree on for exactly this video length
+    try{const base=t=>t.toLowerCase().replace(/\(.*?\)|\[.*?\]/g,'').replace(/^.*? - /,'').replace(/[^a-z0-9]/g,'');
+      const junk=/rapide|demo|remix|extended|dance (mix|version)|live|acoustic|instrumental|karaoke|sped|slowed|radio edit/i,keep=junk.test(x.trackName);
+      const first=z=>{const m=z.syncedLyrics.match(/\[(\d+):(\d+(?:\.\d+)?)\]\s*\S/);return m?+m[1]*60+ +m[2]:0};
+      const tn=x.trackName.replace(/\(.*?\)|\[.*?\]/g,'').trim();
+      const [a1,a2]=await Promise.all([getJSON(`https://lrclib.net/api/search?artist_name=${encodeURIComponent(x.artistName)}&track_name=${encodeURIComponent(tn)}`,5000).catch(()=>[]),getJSON(`https://lrclib.net/api/search?q=${encodeURIComponent(x.artistName+' '+tn)}`,5000).catch(()=>[])]);
+      const seen=new Set(),c=[x,...a1,...a2].filter(z=>{if(!z||seen.has(z.id))return false;seen.add(z.id);return z.syncedLyrics&&base(z.trackName)===base(x.trackName)&&(keep||!junk.test(z.trackName+' '+(z.albumName||'')))&&Math.abs(z.duration-vlen)<=2});
+      if(c.length){const bd=Math.min(...c.map(z=>Math.abs(z.duration-vlen))),cc=c.filter(z=>Math.abs(z.duration-vlen)<=bd+.6).sort((a,b)=>first(a)-first(b));
+        const m=cc[Math.floor((cc.length-1)/2)];if(m.id!==x.id&&Math.abs(first(m)-first(x))>.15){x=m;lines=parseLRC(x.syncedLyrics).filter(l=>l.en&&!/^[♪\s]*$/.test(l.en))}}
+      else if(Math.abs(vlen-x.duration)>2){const v2=vids.find(v=>v.len&&Math.abs(v.len-x.duration)<=2&&v.score<vids[0].score+12);if(v2)vids=[v2,...vids.filter(v=>v!==v2)]}}catch(e){}}
   $('#loading').classList.add('hidden');
   const s={id:'lrc'+x.id,lyrDur:x.duration,title:x.trackName.slice(0,30),artist:x.artistName,lines,langs:[['uk','UA']],gloss:{},meta:{id:x.id,artist:x.artistName,track:x.trackName},cover:cover||''};
   if(!vids.length){
