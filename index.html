@@ -271,7 +271,7 @@ body.gaming .tr{display:none}
 .rvbtns button.no{background-image:url(paper_cream.jpg)}
 .rvx{display:block;margin:14px auto 0;font:13px Onest;color:var(--lilac);text-decoration:underline}
 .say{padding:2px 6px;font-size:15px}
-body.gaming.lv-easy .tr,body.gaming.lv-mid .tr{display:inline-block}
+body.gaming.lv-easy:not(.notr) .tr,body.gaming.lv-mid:not(.notr) .tr{display:inline-block}
 #stage{position:relative;z-index:2;flex:1;overflow:hidden;-webkit-mask-image:linear-gradient(transparent 0,#000 15%,#000 80%,transparent 100%);mask-image:linear-gradient(transparent 0,#000 15%,#000 80%,transparent 100%)}
 #stage::before{content:"";position:absolute;inset:0;background:radial-gradient(90% 60% at 40% 42%,rgba(12,3,30,.6),rgba(12,3,30,.2) 70%,transparent)}
 #lyrics{position:relative;list-style:none;padding:0 7vw;max-width:980px;margin:0 auto;transition:transform .8s cubic-bezier(.2,.8,.2,1);will-change:transform}
